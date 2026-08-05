@@ -27,3 +27,110 @@
   </div>
 </header>
 
+<main class="grid">
+
+  <section class="panel session-panel">
+    <div class="panel-head">
+      <h2>Today's Session</h2>
+      <span class="session-tag">PUSH DAY</span>
+    </div>
+
+    <div class="barbell" id="barbell">
+      <span class="sleeve left"></span>
+      <div class="plates" id="platesRow"></div>
+      <span class="sleeve right"></span>
+    </div>
+    <p class="progress-label"><span class="mono" id="doneCount">2</span><span class="mono">/</span><span class="mono" id="totalCount">5</span> lifts loaded</p>
+
+    <table class="log-sheet" id="logSheet">
+      <thead>
+        <tr><th>#</th><th>Exercise</th><th>Sets × Reps</th><th>Load</th><th class="th-check">Done</th></tr>
+      </thead>
+      <tbody>
+        <tr data-done="true">
+          <td class="idx mono">01</td>
+          <td>Barbell Bench Press</td>
+          <td class="mono">4 × 6</td>
+          <td class="mono">80 kg</td>
+          <td class="th-check"><button class="check-btn" aria-pressed="true" aria-label="Mark Barbell Bench Press complete"></button></td>
+        </tr>
+        <tr data-done="true">
+          <td class="idx mono">02</td>
+          <td>Incline Dumbbell Press</td>
+          <td class="mono">3 × 10</td>
+          <td class="mono">28 kg</td>
+          <td class="th-check"><button class="check-btn" aria-pressed="true" aria-label="Mark Incline Dumbbell Press complete"></button></td>
+        </tr>
+        <tr data-done="false">
+          <td class="idx mono">03</td>
+          <td>Weighted Dips</td>
+          <td class="mono">3 × 8</td>
+          <td class="mono">+15 kg</td>
+          <td class="th-check"><button class="check-btn" aria-pressed="false" aria-label="Mark Weighted Dips complete"></button></td>
+        </tr>
+        <tr data-done="false">
+          <td class="idx mono">04</td>
+          <td>Cable Lateral Raise</td>
+          <td class="mono">4 × 15</td>
+          <td class="mono">10 kg</td>
+          <td class="th-check"><button class="check-btn" aria-pressed="false" aria-label="Mark Cable Lateral Raise complete"></button></td>
+        </tr>
+        <tr data-done="false">
+          <td class="idx mono">05</td>
+          <td>Overhead Triceps Extension</td>
+          <td class="mono">3 × 12</td>
+          <td class="mono">22 kg</td>
+          <td class="th-check"><button class="check-btn" aria-pressed="false" aria-label="Mark Overhead Triceps Extension complete"></button></td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+      <aside class="panel stack-panel">
+    <div class="panel-head">
+      <h2>Today's Stack</h2>
+      <span class="adherence mono"><span id="adherencePct">60</span>% taken</span>
+    </div>
+
+    <ul class="pill-list" id="pillList">
+      <li class="pill-card" data-taken="true">
+        <div class="pill-label">
+          <span class="pill-name">Creatine Monohydrate</span>
+          <span class="pill-dose mono">5 g · AM</span>
+        </div>
+        <button class="pop-btn" aria-pressed="true" aria-label="Mark Creatine Monohydrate taken"><span class="pop"></span></button>
+      </li>
+      <li class="pill-card" data-taken="true">
+        <div class="pill-label">
+          <span class="pill-name">Whey Protein Isolate</span>
+          <span class="pill-dose mono">30 g · Post-workout</span>
+        </div>
+        <button class="pop-btn" aria-pressed="true" aria-label="Mark Whey Protein Isolate taken"><span class="pop"></span></button>
+      </li>
+      <li class="pill-card" data-taken="false">
+        <div class="pill-label">
+          <span class="pill-name">Pre-Workout Blend</span>
+          <span class="pill-dose mono">1 scoop · Pre-lift</span>
+        </div>
+        <button class="pop-btn" aria-pressed="false" aria-label="Mark Pre-Workout Blend taken"><span class="pop"></span></button>
+      </li>
+      <li class="pill-card" data-taken="false">
+        <div class="pill-label">
+          <span class="pill-name">Omega-3 Fish Oil</span>
+          <span class="pill-dose mono">2 g · PM</span>
+        </div>
+        <button class="pop-btn" aria-pressed="false" aria-label="Mark Omega-3 Fish Oil taken"><span class="pop"></span></button>
+      </li>
+      <li class="pill-card" data-taken="false">
+        <div class="pill-label">
+          <span class="pill-name">Vitamin D3 + K2</span>
+          <span class="pill-dose mono">4000 IU · AM</span>
+        </div>
+        <button class="pop-btn" aria-pressed="false" aria-label="Mark Vitamin D3 taken"><span class="pop"></span></button>
+      </li>
+    </ul>
+  </aside>
+</main>
+
+<script src="script.js"></script>
+</body>
+</html>
