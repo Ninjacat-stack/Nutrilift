@@ -20,3 +20,51 @@ function initThemeToggle() {
   });
 }
 
+function initBarbellProgress() {
+  const rows = document.querySelectorAll("#logSheet tbody tr");
+  const platesRow = document.getElementById("platesRow");
+
+  // Plate sizes echo real plate weights: bigger discs first, tapering down.
+  const sizes = [22, 19, 16, 14, 12];
+
+  rows.forEach((row, i) => {
+    const disc = document.createElement("span");
+    disc.className = "plate-disc";
+    const size = sizes[i] ?? 12;
+    disc.style.width = size + "px";
+    disc.style.height = size + "px";
+    disc.dataset.index = i;
+    platesRow.appendChild(disc);
+  });
+
+  updateBarbellProgress();
+}
+
+function updateBarbellProgress() {
+  const rows = document.querySelectorAll("#logSheet tbody tr");
+  const discs = document.querySelectorAll(".plate-disc");
+  let doneCount = 0;
+
+  rows.forEach((row, i) => {
+    const isDone = row.getAttribute("data-done") === "true";
+    if (isDone) doneCount++;
+    if (discs[i]) discs[i].classList.toggle("loaded", isDone);
+  });
+
+  document.getElementById("doneCount").textContent = doneCount;
+  document.getElementById("totalCount").textContent = rows.length;
+}
+
+/* ---------- Exercise checkboxes ---------- */
+function initCheckButtons() {
+  document.querySelectorAll(".check-btn").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const row = btn.closest("tr");
+      const nowDone = row.getAttribute("data-done") !== "true";
+      row.setAttribute("data-done", String(nowDone));
+      btn.setAttribute("aria-pressed", String(nowDone));
+      updateBarbellProgress();
+    });
+  });
+}
+
