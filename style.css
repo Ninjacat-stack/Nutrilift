@@ -427,9 +427,7 @@ main.grid {
   color: var(--muted);
 }
 
-/* ============================================
-   Footer
-   ============================================ */
+
 .site-footer {
   text-align: center;
   padding: 20px;
@@ -438,3 +436,4 @@ main.grid {
   color: var(--muted);
   text-transform: uppercase;
 }
+

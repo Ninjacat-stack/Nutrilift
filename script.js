@@ -68,3 +68,24 @@ function initCheckButtons() {
   });
 }
 
+function initStackAdherence() {
+  document.querySelectorAll(".pop-btn").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const card = btn.closest(".pill-card");
+      const nowTaken = card.getAttribute("data-taken") !== "true";
+      card.setAttribute("data-taken", String(nowTaken));
+      btn.setAttribute("aria-pressed", String(nowTaken));
+      updateStackAdherence();
+    });
+  });
+
+  updateStackAdherence();
+}
+
+function updateStackAdherence() {
+  const cards = document.querySelectorAll(".pill-card");
+  const taken = document.querySelectorAll('.pill-card[data-taken="true"]').length;
+  const pct = Math.round((taken / cards.length) * 100);
+  document.getElementById("adherencePct").textContent = pct;
+}
+
