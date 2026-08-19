@@ -52,9 +52,17 @@ body {
    Masthead
    ============================================ */
 .masthead {
+  border-top: 3px solid var(--iron-red);
   border-bottom: 3px solid var(--ink);
   padding: 22px clamp(20px, 5vw, 56px) 0;
   background: var(--surface);
+  transition: padding 0.3s ease, border-bottom-width 0.3s ease, box-shadow 0.3s ease;
+}
+
+.masthead.is-scrolled {
+  padding-top: 9px;
+  border-bottom-width: 2px;
+  box-shadow: 0 1px 0 var(--line), 0 6px 18px rgba(0, 0, 0, 0.08);
 }
 
 .masthead-top {
@@ -62,7 +70,10 @@ body {
   align-items: center;
   justify-content: space-between;
   padding-bottom: 14px;
+  transition: padding 0.3s ease;
 }
+
+.masthead.is-scrolled .masthead-top { padding-bottom: 5px; }
 
 .wordmark {
   font-family: var(--font-display);
@@ -72,6 +83,12 @@ body {
   display: flex;
   align-items: center;
   gap: 10px;
+  transition: font-size 0.3s ease, gap 0.3s ease;
+}
+
+.masthead.is-scrolled .wordmark {
+  font-size: clamp(16px, 2.2vw, 21px);
+  gap: 6px;
 }
 
 .wordmark .mark {
@@ -81,6 +98,12 @@ body {
   border-radius: 2px;
   display: inline-block;
   transform: rotate(45deg);
+  transition: width 0.3s ease, height 0.3s ease;
+}
+
+.masthead.is-scrolled .mark {
+  width: 10px;
+  height: 10px;
 }
 
 .wordmark .dot { color: var(--iron-red); }
@@ -96,7 +119,10 @@ body {
   font-size: 11px;
   letter-spacing: 0.08em;
   color: var(--ink-soft);
+  transition: font-size 0.3s ease;
 }
+
+.masthead.is-scrolled .mode-switch { font-size: 9px; }
 
 .switch-track {
   width: 40px;
@@ -106,8 +132,10 @@ body {
   border: 1px solid var(--muted);
   position: relative;
   display: inline-block;
-  transition: background 0.2s ease;
+  transition: background 0.2s ease, width 0.3s ease, height 0.3s ease;
 }
+
+.masthead.is-scrolled .switch-track { width: 31px; height: 15px; }
 
 .switch-thumb {
   position: absolute;
@@ -117,11 +145,14 @@ body {
   height: 16px;
   border-radius: 50%;
   background: var(--iron-red);
-  transition: transform 0.2s ease;
+  transition: transform 0.2s ease, width 0.3s ease, height 0.3s ease;
 }
+
+.masthead.is-scrolled .switch-thumb { width: 12px; height: 12px; }
 
 .mode-switch[aria-pressed="true"] .switch-thumb { transform: translateX(19px); }
 .mode-switch[aria-pressed="true"] .switch-track { background: var(--iron-red-dim); }
+.masthead.is-scrolled .mode-switch[aria-pressed="true"] .switch-thumb { transform: translateX(15px); }
 
 .masthead-bottom {
   display: flex;
@@ -132,6 +163,13 @@ body {
   font-size: 12px;
   letter-spacing: 0.06em;
   flex-wrap: wrap;
+  transition: padding 0.3s ease, font-size 0.3s ease, gap 0.3s ease;
+}
+
+.masthead.is-scrolled .masthead-bottom {
+  padding-bottom: 6px;
+  font-size: 10px;
+  gap: 8px;
 }
 
 .tagline { font-weight: 600; color: var(--brick); }

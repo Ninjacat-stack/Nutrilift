@@ -1,10 +1,21 @@
 
 document.addEventListener("DOMContentLoaded", () => {
   initThemeToggle();
+  initHeaderShrink();
   initBarbellProgress();
   initCheckButtons();
   initStackAdherence();
 });
+
+/* ---------- Header shrink on scroll ---------- */
+function initHeaderShrink() {
+  const header = document.querySelector(".masthead");
+  const onScroll = () => {
+    header.classList.toggle("is-scrolled", window.scrollY > 16);
+  };
+  window.addEventListener("scroll", onScroll, { passive: true });
+  onScroll();
+}
 
 /* ---------- Theme toggle ---------- */
 function initThemeToggle() {
