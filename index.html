@@ -1,155 +1,212 @@
 <!DOCTYPE html>
 <html lang="en" data-theme="light">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Nutrilift — Training &amp; Stack Log</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Nutrilift — training and supplement stack log. Log your lifts, track your macros, and keep the streak alive.">
+  <meta name="theme-color" content="#C81E3D">
+  <title>Nutrilift — Training &amp; Stack Log</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect x='8' y='8' width='16' height='16' fill='%23C81E3D' transform='rotate(45 16 16)'/%3E%3C/svg%3E">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-<header class="masthead">
-  <div class="masthead-top">
-    <div class="wordmark"><span class="mark"></span>NUTRILIFT<span class="dot">.</span></div>
-    <button id="themeToggle" class="mode-switch" aria-pressed="false" aria-label="Switch to dark mode">
-      <span class="switch-track"><span class="switch-thumb"></span></span>
-      <span class="switch-label">DARK</span>
-    </button>
-  </div>
-  <div class="masthead-bottom">
-    <span class="tagline">TRAINING &amp; STACK LOG</span>
-    <span class="divider">•</span>
-    <span class="date-badge mono" id="dateBadge">TUE · AUG 04</span>
-    <span class="divider">•</span>
-    <span class="streak">STREAK <strong class="mono" id="streakCount">6</strong> DAYS</span>
-  </div>
-</header>
-
-<main class="grid">
-
-  <section class="panel session-panel">
-    <div class="panel-head">
-      <h2>Today's Session</h2>
-      <span class="session-tag">PUSH DAY</span>
+  <header class="masthead">
+    <div class="masthead-top">
+      <div class="wordmark"><span class="mark"></span>NUTRILIFT<span class="dot">.</span></div>
+      <button id="themeToggle" class="mode-switch" aria-pressed="false" aria-label="Switch to dark mode">
+        <span class="switch-track"><span class="switch-thumb"></span></span>
+        <span class="switch-label">DARK</span>
+      </button>
     </div>
-
-    <div class="barbell" id="barbell">
-      <span class="sleeve left"></span>
-      <div class="plates" id="platesRow"></div>
-      <span class="sleeve right"></span>
+    <div class="masthead-bottom">
+      <span class="tagline">TRAINING &amp; STACK LOG</span>
+      <span class="divider">•</span>
+      <span class="date-badge mono" id="dateBadge">TUE · AUG 04</span>
+      <span class="divider">•</span>
+      <span class="streak">STREAK <strong class="mono" id="streakCount">6</strong> DAYS</span>
     </div>
-    <p class="progress-label"><span class="mono" id="doneCount">2</span><span class="mono">/</span><span class="mono" id="totalCount">5</span> lifts loaded</p>
+  </header>
 
-    <table class="log-sheet" id="logSheet">
-      <thead>
-        <tr><th>#</th><th>Exercise</th><th>Sets × Reps</th><th>Load</th><th class="th-check">Done</th></tr>
-      </thead>
-      <tbody>
-        <tr data-done="true">
-          <td class="idx mono">01</td>
-          <td>Barbell Bench Press</td>
-          <td class="mono">4 × 6</td>
-          <td class="mono">80 kg</td>
-          <td class="th-check"><button class="check-btn" aria-pressed="true" aria-label="Mark Barbell Bench Press complete"></button></td>
-        </tr>
-        <tr data-done="true">
-          <td class="idx mono">02</td>
-          <td>Incline Dumbbell Press</td>
-          <td class="mono">3 × 10</td>
-          <td class="mono">28 kg</td>
-          <td class="th-check"><button class="check-btn" aria-pressed="true" aria-label="Mark Incline Dumbbell Press complete"></button></td>
-        </tr>
-        <tr data-done="false">
-          <td class="idx mono">03</td>
-          <td>Weighted Dips</td>
-          <td class="mono">3 × 8</td>
-          <td class="mono">+15 kg</td>
-          <td class="th-check"><button class="check-btn" aria-pressed="false" aria-label="Mark Weighted Dips complete"></button></td>
-        </tr>
-        <tr data-done="false">
-          <td class="idx mono">04</td>
-          <td>Cable Lateral Raise</td>
-          <td class="mono">4 × 15</td>
-          <td class="mono">10 kg</td>
-          <td class="th-check"><button class="check-btn" aria-pressed="false" aria-label="Mark Cable Lateral Raise complete"></button></td>
-        </tr>
-        <tr data-done="false">
-          <td class="idx mono">05</td>
-          <td>Overhead Triceps Extension</td>
-          <td class="mono">3 × 12</td>
-          <td class="mono">22 kg</td>
-          <td class="th-check"><button class="check-btn" aria-pressed="false" aria-label="Mark Overhead Triceps Extension complete"></button></td>
-        </tr>
-      </tbody>
-    </table>
-  </section>
+  <main class="content">
+
+    <div class="grid">
+      <section class="panel session-panel">
+        <div class="panel-head">
+          <h2>Today's Session</h2>
+          <span class="session-tag">PUSH DAY</span>
+        </div>
+
+        <div class="barbell" id="barbell">
+          <span class="sleeve left"></span>
+          <div class="plates" id="platesRow"></div>
+          <span class="sleeve right"></span>
+        </div>
+        <p class="progress-label"><span class="mono" id="doneCount">2</span><span class="mono">/</span><span class="mono" id="totalCount">5</span> lifts loaded</p>
+
+        <table class="log-sheet" id="logSheet">
+          <thead>
+            <tr><th>#</th><th>Exercise</th><th>Sets × Reps</th><th>Load</th><th class="th-check">Done</th></tr>
+          </thead>
+          <tbody>
+            <tr data-done="true">
+              <td class="idx mono">01</td>
+              <td>Barbell Bench Press</td>
+              <td class="mono">4 × 6</td>
+              <td class="mono">80 kg</td>
+              <td class="th-check"><button class="check-btn" aria-pressed="true" aria-label="Mark Barbell Bench Press complete"></button></td>
+            </tr>
+            <tr data-done="true">
+              <td class="idx mono">02</td>
+              <td>Incline Dumbbell Press</td>
+              <td class="mono">3 × 10</td>
+              <td class="mono">28 kg</td>
+              <td class="th-check"><button class="check-btn" aria-pressed="true" aria-label="Mark Incline Dumbbell Press complete"></button></td>
+            </tr>
+            <tr data-done="false">
+              <td class="idx mono">03</td>
+              <td>Weighted Dips</td>
+              <td class="mono">3 × 8</td>
+              <td class="mono">+15 kg</td>
+              <td class="th-check"><button class="check-btn" aria-pressed="false" aria-label="Mark Weighted Dips complete"></button></td>
+            </tr>
+            <tr data-done="false">
+              <td class="idx mono">04</td>
+              <td>Cable Lateral Raise</td>
+              <td class="mono">4 × 15</td>
+              <td class="mono">10 kg</td>
+              <td class="th-check"><button class="check-btn" aria-pressed="false" aria-label="Mark Cable Lateral Raise complete"></button></td>
+            </tr>
+            <tr data-done="false">
+              <td class="idx mono">05</td>
+              <td>Overhead Triceps Extension</td>
+              <td class="mono">3 × 12</td>
+              <td class="mono">22 kg</td>
+              <td class="th-check"><button class="check-btn" aria-pressed="false" aria-label="Mark Overhead Triceps Extension complete"></button></td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
       <aside class="panel stack-panel">
-    <div class="panel-head">
-      <h2>Today's Stack</h2>
-      <span class="adherence mono"><span id="adherencePct">60</span>% taken</span>
+        <div class="panel-head">
+          <h2>Today's Stack</h2>
+          <span class="adherence mono"><span id="adherencePct">60</span>% taken</span>
+        </div>
+
+        <ul class="pill-list" id="pillList">
+          <li class="pill-card" data-taken="true">
+            <div class="pill-label">
+              <span class="pill-name">Creatine Monohydrate</span>
+              <span class="pill-dose mono">5 g · AM</span>
+            </div>
+            <button class="pop-btn" aria-pressed="true" aria-label="Mark Creatine Monohydrate taken"><span class="pop"></span></button>
+          </li>
+          <li class="pill-card" data-taken="true">
+            <div class="pill-label">
+              <span class="pill-name">Whey Protein Isolate</span>
+              <span class="pill-dose mono">30 g · Post-workout</span>
+            </div>
+            <button class="pop-btn" aria-pressed="true" aria-label="Mark Whey Protein Isolate taken"><span class="pop"></span></button>
+          </li>
+          <li class="pill-card" data-taken="false">
+            <div class="pill-label">
+              <span class="pill-name">Pre-Workout Blend</span>
+              <span class="pill-dose mono">1 scoop · Pre-lift</span>
+            </div>
+            <button class="pop-btn" aria-pressed="false" aria-label="Mark Pre-Workout Blend taken"><span class="pop"></span></button>
+          </li>
+          <li class="pill-card" data-taken="false">
+            <div class="pill-label">
+              <span class="pill-name">Omega-3 Fish Oil</span>
+              <span class="pill-dose mono">2 g · PM</span>
+            </div>
+            <button class="pop-btn" aria-pressed="false" aria-label="Mark Omega-3 Fish Oil taken"><span class="pop"></span></button>
+          </li>
+          <li class="pill-card" data-taken="false">
+            <div class="pill-label">
+              <span class="pill-name">Vitamin D3 + K2</span>
+              <span class="pill-dose mono">4000 IU · AM</span>
+            </div>
+            <button class="pop-btn" aria-pressed="false" aria-label="Mark Vitamin D3 taken"><span class="pop"></span></button>
+          </li>
+        </ul>
+      </aside>
     </div>
 
-    <ul class="pill-list" id="pillList">
-      <li class="pill-card" data-taken="true">
-        <div class="pill-label">
-          <span class="pill-name">Creatine Monohydrate</span>
-          <span class="pill-dose mono">5 g · AM</span>
-        </div>
-        <button class="pop-btn" aria-pressed="true" aria-label="Mark Creatine Monohydrate taken"><span class="pop"></span></button>
-      </li>
-      <li class="pill-card" data-taken="true">
-        <div class="pill-label">
-          <span class="pill-name">Whey Protein Isolate</span>
-          <span class="pill-dose mono">30 g · Post-workout</span>
-        </div>
-        <button class="pop-btn" aria-pressed="true" aria-label="Mark Whey Protein Isolate taken"><span class="pop"></span></button>
-      </li>
-      <li class="pill-card" data-taken="false">
-        <div class="pill-label">
-          <span class="pill-name">Pre-Workout Blend</span>
-          <span class="pill-dose mono">1 scoop · Pre-lift</span>
-        </div>
-        <button class="pop-btn" aria-pressed="false" aria-label="Mark Pre-Workout Blend taken"><span class="pop"></span></button>
-      </li>
-      <li class="pill-card" data-taken="false">
-        <div class="pill-label">
-          <span class="pill-name">Omega-3 Fish Oil</span>
-          <span class="pill-dose mono">2 g · PM</span>
-        </div>
-        <button class="pop-btn" aria-pressed="false" aria-label="Mark Omega-3 Fish Oil taken"><span class="pop"></span></button>
-      </li>
-      <li class="pill-card" data-taken="false">
-        <div class="pill-label">
-          <span class="pill-name">Vitamin D3 + K2</span>
-          <span class="pill-dose mono">4000 IU · AM</span>
-        </div>
-        <button class="pop-btn" aria-pressed="false" aria-label="Mark Vitamin D3 taken"><span class="pop"></span></button>
-      </li>
-    </ul>
-  </aside>
-</main>
-<section class="panel week-panel">
-  <div class="panel-head">
-    <h2>This Week</h2>
-    <span class="mono" id="weekSummary">4 sessions · 71% stack adherence</span>
-  </div>
-  <div class="week-chart">
-    <div class="day-col" style="--vol:2"><div class="plate-stack"></div><span class="day-label mono">MON</span></div>
-    <div class="day-col" style="--vol:4"><div class="plate-stack"></div><span class="day-label mono">TUE</span></div>
-    <div class="day-col" style="--vol:0"><div class="plate-stack"></div><span class="day-label mono">WED</span></div>
-    <div class="day-col" style="--vol:3"><div class="plate-stack"></div><span class="day-label mono">THU</span></div>
-    <div class="day-col" style="--vol:5"><div class="plate-stack"></div><span class="day-label mono">FRI</span></div>
-    <div class="day-col" style="--vol:1"><div class="plate-stack"></div><span class="day-label mono">SAT</span></div>
-    <div class="day-col" style="--vol:0"><div class="plate-stack"></div><span class="day-label mono">SUN</span></div>
-  </div>
-</section>
+    <section class="panel week-panel">
+      <div class="panel-head">
+        <h2>This Week</h2>
+        <span class="mono" id="weekSummary">4 sessions · 71% stack adherence</span>
+      </div>
+      <div class="week-chart">
+        <div class="day-col" style="--vol:2"><div class="plate-stack"></div><span class="day-label mono">MON</span></div>
+        <div class="day-col" style="--vol:4"><div class="plate-stack"></div><span class="day-label mono">TUE</span></div>
+        <div class="day-col" style="--vol:0"><div class="plate-stack"></div><span class="day-label mono">WED</span></div>
+        <div class="day-col" style="--vol:3"><div class="plate-stack"></div><span class="day-label mono">THU</span></div>
+        <div class="day-col" style="--vol:5"><div class="plate-stack"></div><span class="day-label mono">FRI</span></div>
+        <div class="day-col" style="--vol:1"><div class="plate-stack"></div><span class="day-label mono">SAT</span></div>
+        <div class="day-col" style="--vol:0"><div class="plate-stack"></div><span class="day-label mono">SUN</span></div>
+      </div>
+    </section>
 
-<footer class="site-footer">
-  <span>NUTRILIFT — logged, not guessed.</span>
-</footer>
+    <div class="grid">
+      <section class="panel nutrition-panel">
+        <div class="panel-head">
+          <h2>Fuel Today</h2>
+          <span class="adherence mono">1300 / 2200 kcal</span>
+        </div>
+        <div class="macro-list">
+          <div class="macro" style="--pct:55">
+            <div class="macro-top"><span>PROTEIN</span><span class="macro-nums mono">90 / 165 g</span></div>
+            <div class="macro-bar"><span class="macro-fill"></span></div>
+          </div>
+          <div class="macro" style="--pct:42">
+            <div class="macro-top"><span>CARBS</span><span class="macro-nums mono">150 / 240 g</span></div>
+            <div class="macro-bar"><span class="macro-fill"></span></div>
+          </div>
+          <div class="macro" style="--pct:58">
+            <div class="macro-top"><span>FATS</span><span class="macro-nums mono">38 / 70 g</span></div>
+            <div class="macro-bar"><span class="macro-fill"></span></div>
+          </div>
+          <div class="macro" style="--pct:60">
+            <div class="macro-top"><span>CALORIES</span><span class="macro-nums mono">1300 / 2200 kcal</span></div>
+            <div class="macro-bar"><span class="macro-fill"></span></div>
+          </div>
+        </div>
+      </section>
 
-<script src="script.js"></script>
+      <section class="panel pr-panel">
+        <div class="panel-head">
+          <h2>Personal Records</h2>
+          <span class="adherence mono">Last 90 days</span>
+        </div>
+        <table class="pr-sheet">
+          <thead>
+            <tr><th>Lift</th><th>Best</th><th class="th-check">Date</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Bench Press</td><td class="mono">95 kg</td><td class="mono th-check">AUG 02</td></tr>
+            <tr><td>Squat</td><td class="mono">140 kg</td><td class="mono th-check">JUL 28</td></tr>
+            <tr><td>Deadlift</td><td class="mono">180 kg</td><td class="mono th-check">JUL 12</td></tr>
+            <tr><td>Front Squat</td><td class="mono">100 kg</td><td class="mono th-check">JUN 30</td></tr>
+            <tr><td>Overhead Press</td><td class="mono">62.5 kg</td><td class="mono th-check">JUN 22</td></tr>
+          </tbody>
+        </table>
+      </section>
+    </div>
+
+  </main>
+
+  <footer class="site-footer">
+    <span class="footer-brand">NUTRILIFT<span>.</span></span>
+    <span class="footer-line">Logged, not guessed.</span>
+    <span class="footer-meta mono">SQUAT · BENCH · DEADLIFT · RINSE · REPEAT</span>
+  </footer>
+
+  <script src="script.js"></script>
 </body>
 </html>

@@ -12,6 +12,7 @@
   --iron-red-dim: #E9C3CB;
   --brick: #8F2438;
   --success: #3F7A52;
+  --hover: #F6ECE4;
 
   --font-display: "Oswald", "Arial Narrow", sans-serif;
   --font-body: "Inter", -apple-system, sans-serif;
@@ -32,10 +33,13 @@ html[data-theme="dark"] {
   --iron-red-dim: #4A1E28;
   --brick: #B0153A;
   --success: #5DA579;
+  --hover: #241A1A;
   color-scheme: dark;
 }
 
 * { box-sizing: border-box; }
+
+::selection { background: var(--iron-red); color: var(--surface); }
 
 body {
   margin: 0;
@@ -47,6 +51,13 @@ body {
 }
 
 .mono { font-family: var(--font-mono); }
+
+button { font: inherit; }
+
+button:focus-visible {
+  outline: 2px solid var(--iron-red);
+  outline-offset: 3px;
+}
 
 /* ============================================
    Masthead
@@ -179,17 +190,23 @@ body {
 /* ============================================
    Layout
    ============================================ */
-main.grid {
+main.content {
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 24px clamp(20px, 5vw, 56px) 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.grid {
   display: grid;
   grid-template-columns: 1.4fr 1fr;
   gap: 20px;
-  padding: 24px clamp(20px, 5vw, 56px);
-  max-width: 1180px;
-  margin: 0 auto;
 }
 
 @media (max-width: 860px) {
-  main.grid { grid-template-columns: 1fr; }
+  .grid { grid-template-columns: 1fr; }
 }
 
 .panel {
@@ -289,15 +306,17 @@ main.grid {
 .progress-label .mono { color: var(--ink); font-weight: 600; }
 
 /* ============================================
-   Log sheet table
+   Log sheet + PR sheet — shared table styles
    ============================================ */
-.log-sheet {
+.log-sheet,
+.pr-sheet {
   width: 100%;
   border-collapse: collapse;
   font-size: 14px;
 }
 
-.log-sheet thead th {
+.log-sheet thead th,
+.pr-sheet thead th {
   text-align: left;
   font-family: var(--font-mono);
   font-size: 10px;
@@ -308,16 +327,29 @@ main.grid {
   border-bottom: 1px solid var(--line);
 }
 
-.log-sheet th.th-check, .log-sheet td.th-check { text-align: center; }
+.log-sheet th.th-check,
+.log-sheet td.th-check,
+.pr-sheet th.th-check,
+.pr-sheet td.th-check { text-align: center; }
 
-.log-sheet td {
+.log-sheet td,
+.pr-sheet td {
   padding: 11px 8px;
   border-bottom: 1px solid var(--line);
   vertical-align: middle;
+  transition: background 0.15s ease;
 }
 
-.log-sheet tr:last-child td { border-bottom: none; }
-.log-sheet .idx { color: var(--muted); font-size: 12px; }
+.log-sheet tbody tr:hover td,
+.pr-sheet tbody tr:hover td { background: var(--hover); }
+
+.log-sheet tr:last-child td,
+.pr-sheet tr:last-child td { border-bottom: none; }
+
+.log-sheet .idx,
+.pr-sheet .idx { color: var(--muted); font-size: 12px; }
+
+.pr-sheet td:first-child { font-weight: 500; }
 
 .log-sheet tr[data-done="true"] td:nth-child(2) {
   color: var(--ink-soft);
@@ -336,6 +368,9 @@ main.grid {
   position: relative;
   transition: all 0.15s ease;
 }
+
+.check-btn:hover { border-color: var(--iron-red); }
+.check-btn:active { transform: scale(0.92); }
 
 .check-btn[aria-pressed="true"] {
   background: var(--iron-red);
@@ -377,6 +412,7 @@ main.grid {
   transition: border-color 0.2s ease;
 }
 
+.pill-card:hover { border-color: var(--muted); }
 .pill-card[data-taken="true"] { border-left-color: var(--iron-red); }
 
 .pill-label { display: flex; flex-direction: column; gap: 3px; }
@@ -394,6 +430,9 @@ main.grid {
   align-items: center;
   justify-content: center;
 }
+
+.pop-btn:hover { border-color: var(--iron-red); }
+.pop-btn:active { transform: scale(0.92); }
 
 .pop-btn .pop {
   width: 10px;
@@ -413,13 +452,56 @@ main.grid {
 }
 
 /* ============================================
+   Nutrition panel — macro bars
+   ============================================ */
+.macro-list {
+  display: grid;
+  gap: 16px;
+}
+
+.macro {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.macro-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  color: var(--muted);
+}
+
+.macro-nums {
+  color: var(--ink);
+  font-weight: 600;
+  font-size: 11px;
+  letter-spacing: 0.03em;
+}
+
+.macro-bar {
+  height: 8px;
+  border-radius: 2px;
+  background: var(--line);
+  overflow: hidden;
+}
+
+.macro-fill {
+  display: block;
+  height: 100%;
+  width: calc(var(--pct, 0) * 1%);
+  background: var(--iron-red);
+  border-radius: 2px;
+  transition: width 0.4s ease;
+}
+
+/* ============================================
    Week overview
    ============================================ */
-.week-panel {
-  max-width: 1180px;
-  margin: 0 auto 40px;
-  padding: 20px clamp(20px, 5vw, 56px) 24px;
-}
+.week-panel { padding: 20px 22px 24px; }
 
 .week-chart {
   display: grid;
@@ -465,13 +547,39 @@ main.grid {
   color: var(--muted);
 }
 
-
+/* ============================================
+   Footer
+   ============================================ */
 .site-footer {
   text-align: center;
-  padding: 20px;
+  padding: 28px 20px 34px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
   font-size: 11px;
   letter-spacing: 0.08em;
   color: var(--muted);
   text-transform: uppercase;
 }
 
+.footer-brand {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 18px;
+  letter-spacing: 0.06em;
+  color: var(--ink);
+}
+
+.footer-brand span { color: var(--iron-red); }
+.footer-meta { color: var(--ink-soft); }
+
+/* ============================================
+   Motion
+   ============================================ */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    transition: none !important;
+    animation: none !important;
+  }
+}
