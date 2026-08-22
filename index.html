@@ -5,12 +5,21 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="Nutrilift — training and supplement stack log. Log your lifts, track your macros, and keep the streak alive.">
   <meta name="theme-color" content="#C81E3D">
-  <title>Nutrilift — Training &amp; Stack Log</title>
+  <title>Nutrilift — Training & Stack Log</title>
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect x='8' y='8' width='16' height='16' fill='%23C81E3D' transform='rotate(45 16 16)'/%3E%3C/svg%3E">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
+  <script>
+    (function() {
+      try {
+        var s = JSON.parse(localStorage.getItem("nutrilift:v1") || "{}");
+        var t = s.theme || (window.matchMedia("(prefers-color-scheme: device)").matches ? "dark" : "light");
+        document.documentElement.setAttribute("data-theme", t);
+      } catch (e) {}
+    })();
+  </script>
 </head>
 <body>
 
@@ -22,13 +31,13 @@
         <span class="switch-label">DARK</span>
       </button>
     </div>
-    <div class="masthead-bottom">
-      <span class="tagline">TRAINING &amp; STACK LOG</span>
-      <span class="divider">•</span>
-      <span class="date-badge mono" id="dateBadge">TUE · AUG 04</span>
-      <span class="divider">•</span>
-      <span class="streak">STREAK <strong class="mono" id="streakCount">6</strong> DAYS</span>
-    </div>
+<div class="masthead-bottom">
+        <span class="tagline">TRAINING & STACK LOG</span>
+        <span class="divider">•</span>
+        <span class="date-badge mono" id="dateBadge"></span>
+        <span class="divider">•</span>
+        <span class="streak">STREAK <strong class="mono" id="streakCount">0</strong> DAYS</span>
+      </div>
   </header>
 
   <main class="content">
@@ -94,7 +103,7 @@
       <aside class="panel stack-panel">
         <div class="panel-head">
           <h2>Today's Stack</h2>
-          <span class="adherence mono"><span id="adherencePct">60</span>% taken</span>
+          <span class="adherence mono"><span id="adherencePct">40</span>% taken</span>
         </div>
 
         <ul class="pill-list" id="pillList">
