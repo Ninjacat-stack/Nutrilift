@@ -37,6 +37,11 @@ html[data-theme="dark"] {
   color-scheme: dark;
 }
 
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 80px;
+}
+
 * { box-sizing: border-box; }
 
 ::selection { background: var(--iron-red); color: var(--surface); }
@@ -63,28 +68,62 @@ button:focus-visible {
    Masthead
    ============================================ */
 .masthead {
-  border-top: 3px solid var(--iron-red);
-  border-bottom: 3px solid var(--ink);
-  padding: 22px clamp(20px, 5vw, 56px) 0;
-  background: var(--surface);
-  transition: padding 0.3s ease, border-bottom-width 0.3s ease, box-shadow 0.3s ease;
-}
-
-.masthead.is-scrolled {
-  padding-top: 9px;
-  border-bottom-width: 2px;
-  box-shadow: 0 1px 0 var(--line), 0 6px 18px rgba(0, 0, 0, 0.08);
-}
-
-.masthead-top {
+  position: sticky;
+  top: 12px;
+  z-index: 1000;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding-bottom: 14px;
-  transition: padding 0.3s ease;
+  max-width: 1180px;
+  margin: 12px auto 0;
+  padding: 10px clamp(16px, 3vw, 28px);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+  transition: padding 0.3s ease, box-shadow 0.3s ease, margin 0.3s ease, border-radius 0.3s ease;
 }
 
-.masthead.is-scrolled .masthead-top { padding-bottom: 5px; }
+.masthead.is-scrolled {
+  padding: 8px clamp(16px, 3vw, 28px);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1), 0 1px 0 var(--line);
+}
+
+.masthead-left,
+.masthead-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-shrink: 0;
+}
+
+.masthead-center {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.masthead-center a {
+  font-family: var(--font-body);
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  color: var(--ink-soft);
+  text-decoration: none;
+  padding: 6px 14px;
+  border-radius: 8px;
+  transition: color 0.2s ease, background 0.2s ease;
+}
+
+.masthead-center a:hover {
+  color: var(--ink);
+  background: var(--hover);
+}
+
+.masthead.is-scrolled .masthead-center a {
+  font-size: 12px;
+  padding: 4px 10px;
+}
 
 .wordmark {
   font-family: var(--font-display);
@@ -94,6 +133,8 @@ button:focus-visible {
   display: flex;
   align-items: center;
   gap: 10px;
+  text-decoration: none;
+  color: inherit;
   transition: font-size 0.3s ease, gap 0.3s ease;
 }
 
@@ -165,27 +206,30 @@ button:focus-visible {
 .mode-switch[aria-pressed="true"] .switch-track { background: var(--iron-red-dim); }
 .masthead.is-scrolled .mode-switch[aria-pressed="true"] .switch-thumb { transform: translateX(15px); }
 
-.masthead-bottom {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding-bottom: 14px;
+.masthead-right .date-badge {
+  font-size: 11px;
   color: var(--ink-soft);
-  font-size: 12px;
   letter-spacing: 0.06em;
-  flex-wrap: wrap;
-  transition: padding 0.3s ease, font-size 0.3s ease, gap 0.3s ease;
 }
 
-.masthead.is-scrolled .masthead-bottom {
-  padding-bottom: 6px;
+.masthead-right .streak {
+  font-size: 11px;
+  color: var(--ink-soft);
+  letter-spacing: 0.06em;
+}
+
+.masthead.is-scrolled .masthead-right .date-badge,
+.masthead.is-scrolled .masthead-right .streak {
   font-size: 10px;
-  gap: 8px;
 }
 
-.tagline { font-weight: 600; color: var(--brick); }
-.divider { color: var(--muted); }
-.streak strong { color: var(--iron-red); }
+.masthead-right .streak strong { color: var(--iron-red); }
+
+@media (max-width: 860px) {
+  .masthead-center { display: none; }
+  .masthead-right .date-badge,
+  .masthead-right .streak { display: none; }
+}
 
 /* ============================================
    Layout
@@ -193,7 +237,7 @@ button:focus-visible {
 main.content {
   max-width: 1180px;
   margin: 0 auto;
-  padding: 24px clamp(20px, 5vw, 56px) 8px;
+  padding: 32px clamp(20px, 5vw, 56px) 8px;
   display: flex;
   flex-direction: column;
   gap: 20px;

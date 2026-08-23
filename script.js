@@ -106,8 +106,19 @@ function initThemeToggle() {
 
 function initHeaderShrink() {
   const header = document.querySelector(".masthead");
+  const ADD_THRESHOLD = 60;
+  const REMOVE_THRESHOLD = 20;
+  let isScrolled = false;
+
   const onScroll = () => {
-    header.classList.toggle("is-scrolled", window.scrollY > 16);
+    const y = window.scrollY;
+    if (!isScrolled && y > ADD_THRESHOLD) {
+      isScrolled = true;
+      header.classList.add("is-scrolled");
+    } else if (isScrolled && y < REMOVE_THRESHOLD) {
+      isScrolled = false;
+      header.classList.remove("is-scrolled");
+    }
   };
   window.addEventListener("scroll", onScroll, { passive: true });
   onScroll();
