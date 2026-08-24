@@ -9,13 +9,13 @@
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect x='8' y='8' width='16' height='16' fill='%23C81E3D' transform='rotate(45 16 16)'/%3E%3C/svg%3E">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
   <script>
     (function() {
       try {
         var s = JSON.parse(localStorage.getItem("nutrilift:v1") || "{}");
-        var t = s.theme || (window.matchMedia("(prefers-color-scheme: device)").matches ? "dark" : "light");
+        var t = s.theme || (window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
         document.documentElement.setAttribute("data-theme", t);
       } catch (e) {}
     })();
@@ -23,18 +23,22 @@
 </head>
 <body>
 
+  <!-- Masthead -->
   <header class="masthead">
     <div class="masthead-left">
-      <a href="#" class="wordmark"><span class="mark"></span>NUTRILIFT<span class="dot">.</span></a>
+      <a href="index.html" class="wordmark"><span class="mark"></span>NUTRILIFT<span class="dot">.</span></a>
     </div>
     <nav class="masthead-center" aria-label="Primary">
       <a href="#log">Log</a>
       <a href="#stack">Stack</a>
       <a href="#week">Week</a>
+      <a href="programs.html">Programs</a>
+      <a href="#pricing">Pricing</a>
     </nav>
     <div class="masthead-right">
       <span class="date-badge mono" id="dateBadge"></span>
       <span class="streak">STREAK <strong class="mono" id="streakCount">0</strong> DAYS</span>
+      <a href="programs.html" class="btn btn-sm btn-outline hide-mobile">Explore Programs</a>
       <button id="themeToggle" class="mode-switch" aria-pressed="false" aria-label="Switch to dark mode">
         <span class="switch-track"><span class="switch-thumb"></span></span>
         <span class="switch-label">DARK</span>
@@ -42,7 +46,98 @@
     </div>
   </header>
 
-  <main class="content">
+  <!-- HERO -->
+  <section class="hero">
+    <div class="hero-inner">
+      <div class="hero-copy">
+        <div class="hero-eyebrow mono"><span class="eyebrow-dot"></span> EST. 2024 · BUILT FOR THE 5AM CREW</div>
+        <h1 class="hero-title">LOGGED,<br><span class="accent">NOT GUESSED.</span></h1>
+        <p class="hero-sub">The training + supplement log for people who take the gym as seriously as their stack. Track lifts, adherence, and macros without the bloat of another fitness app.</p>
+        <div class="hero-actions">
+          <a href="#log" class="btn btn-primary">Start Today's Log →</a>
+          <a href="programs.html" class="btn btn-ghost">Browse Programs</a>
+        </div>
+        <div class="hero-stats">
+          <div class="h-stat"><strong class="mono">12k+</strong><span>logs this month</span></div>
+          <div class="h-stat"><strong class="mono">91%</strong><span>adherence avg.</span></div>
+          <div class="h-stat"><strong class="mono">4.8★</strong><span>from lifters</span></div>
+        </div>
+      </div>
+      <div class="hero-visual">
+        <div class="hero-card hero-card-main">
+          <div class="hero-card-head">
+            <span class="mono">TODAY · PUSH DAY</span><span class="mono live-dot">● LIVE</span>
+          </div>
+          <div class="hero-mini-bars">
+            <span style="--h:38%"></span><span style="--h:65%"></span><span style="--h:42%"></span><span style="--h:88%"></span><span style="--h:55%"></span><span style="--h:72%"></span>
+          </div>
+          <div class="hero-mini-label mono">Volume vs last week +12%</div>
+        </div>
+        <div class="hero-card hero-card-stack">
+          <div class="hero-stack-row"><span>Creatine</span><span class="mono taken">TAKEN ✓</span></div>
+          <div class="hero-stack-row"><span>Whey Isolate</span><span class="mono taken">TAKEN ✓</span></div>
+          <div class="hero-stack-row"><span>Pre-Workout</span><span class="mono pending">PENDING</span></div>
+          <div class="hero-stack-progress"><span style="width:66%"></span></div>
+        </div>
+        <div class="hero-badge">
+          <span class="mono">PR ALERT</span>
+          <strong>Deadlift 180 kg</strong>
+          <span class="mono">Jul 12 · All-time best</span>
+        </div>
+      </div>
+    </div>
+    <div class="hero-trust mono">
+      <span>TRUSTED BY LIFTERS AT</span>
+      <span>Gold's</span><span>·</span><span>Cult.fit</span><span>·</span><span>Anytime</span><span>·</span><span>F45</span><span>·</span><span>CrossFit Box</span>
+    </div>
+  </section>
+
+  <!-- METHOD / FEATURES -->
+  <section class="method" id="method">
+    <div class="section-head">
+      <span class="mono eyebrow">THE METHOD</span>
+      <h2>Three pillars. No fluff.</h2>
+      <p>Most apps try to do everything. We obsess over three things and do them absurdly well.</p>
+    </div>
+    <div class="feature-grid">
+      <article class="feature-card">
+        <div class="feature-icon">◈</div>
+        <h3>Lift Log that respects tempo</h3>
+        <p>Sets × reps × load with RPE hints, rest timers, and a barbell that loads as you check off. Zero swipe-fatigue.</p>
+        <ul class="mono">
+          <li>→ Barbell progress visualization</li>
+          <li>→ PR auto-detection</li>
+          <li>→ Export to CSV / Sheets</li>
+        </ul>
+      </article>
+      <article class="feature-card featured">
+        <div class="feature-icon">⬢</div>
+        <h3>Stack adherence, not reminders spam</h3>
+        <p>Your supplement stack is a ritual, not a notification hell. One-tap pop, streaks, and weekly adherence that matters.</p>
+        <ul class="mono">
+          <li>→ Creatine / Whey / Omega-3 presets</li>
+          <li>→ AM / Pre / Post / PM timing</li>
+          <li>→ 90-day adherence curve</li>
+        </ul>
+        <span class="featured-tag mono">MOST LOVED</span>
+      </article>
+      <article class="feature-card">
+        <div class="feature-icon">⬣</div>
+        <h3>Fuel without MyFitnessPal trauma</h3>
+        <p>Protein, carbs, fats, calories — tracked as bars, not a second job. Set targets once, log with one tap.</p>
+        <ul class="mono">
+          <li>→ Macro bars with targets</li>
+          <li>→ 1-tap meal presets</li>
+          <li>→ Weekly avg. & deficit view</li>
+        </ul>
+      </article>
+    </div>
+  </section>
+
+  <!-- MAIN DASHBOARD CONTENT -->
+  <main class="content" id="dashboard">
+
+    <div class="section-label mono">● LIVE DASHBOARD — Today's work</div>
 
     <div class="grid">
       <section class="panel session-panel" id="log">
@@ -100,6 +195,9 @@
             </tr>
           </tbody>
         </table>
+        <div class="panel-foot mono">
+          <span>Next up: Pull Day · Deadlifts</span><a href="programs.html">Swap program →</a>
+        </div>
       </section>
 
       <aside class="panel stack-panel" id="stack">
@@ -145,6 +243,9 @@
             <button class="pop-btn" aria-pressed="false" aria-label="Mark Vitamin D3 taken"><span class="pop"></span></button>
           </li>
         </ul>
+        <div class="stack-tip mono">
+          <span class="tip-icon">✦</span> Tip: Take creatine at the same time daily — adherence beats timing.
+        </div>
       </aside>
     </div>
 
@@ -162,6 +263,7 @@
         <div class="day-col" style="--vol:1"><div class="plate-stack"></div><span class="day-label mono">SAT</span></div>
         <div class="day-col" style="--vol:0"><div class="plate-stack"></div><span class="day-label mono">SUN</span></div>
       </div>
+      <div class="week-legend mono"><span><i class="legend-dot"></i> Volume (plates)</span><span>Rest days faded</span></div>
     </section>
 
     <div class="grid">
@@ -188,6 +290,10 @@
             <div class="macro-bar"><span class="macro-fill"></span></div>
           </div>
         </div>
+        <div class="macro-actions">
+          <button class="btn btn-sm btn-outline">+ Add Meal</button>
+          <span class="mono macro-hint">Target: 165P · 240C · 70F</span>
+        </div>
       </section>
 
       <section class="panel pr-panel">
@@ -207,15 +313,217 @@
             <tr><td>Overhead Press</td><td class="mono">62.5 kg</td><td class="mono th-check">JUN 22</td></tr>
           </tbody>
         </table>
+        <a href="programs.html" class="pr-link mono">View all PRs →</a>
       </section>
     </div>
 
   </main>
 
+  <!-- INSIGHTS STRIP -->
+  <section class="insights">
+    <div class="insights-inner">
+      <div class="insight-card">
+        <span class="mono insight-kicker">STREAK MATH</span>
+        <strong>14 days</strong>
+        <span class="mono">longest streak this year</span>
+      </div>
+      <div class="insight-card">
+        <span class="mono insight-kicker">VOLUME</span>
+        <strong>+8.2%</strong>
+        <span class="mono">vs last 4 weeks</span>
+      </div>
+      <div class="insight-card">
+        <span class="mono insight-kicker">ADHERENCE</span>
+        <strong>71%</strong>
+        <span class="mono">stack taken (90d avg)</span>
+      </div>
+      <div class="insight-card cta">
+        <p>Your week in one email. No spam, just numbers.</p>
+        <div class="inline-form">
+          <input type="email" placeholder="you@email.com" aria-label="Email for weekly recap">
+          <button class="btn btn-primary btn-sm">Get recap</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- PROGRAMS TEASER -->
+  <section class="programs-teaser" id="programs-teaser">
+    <div class="section-head">
+      <span class="mono eyebrow">PROGRAM LIBRARY</span>
+      <h2>Pick a program. Stick to it.</h2>
+      <p>Six proven splits — from beginner 3-day to comp-peaking 6-day. Every set logged here.</p>
+    </div>
+    <div class="teaser-grid">
+      <article class="program-card">
+        <span class="mono program-meta">3 DAY · BEGINNER</span>
+        <h3>Full-Body Foundation</h3>
+        <p>Compound-first, 45-min sessions. Build base strength without living in the gym.</p>
+        <div class="program-tags mono"><span>Squat</span><span>Bench</span><span>Row</span></div>
+        <a href="programs.html" class="mono program-link">View program →</a>
+      </article>
+      <article class="program-card featured">
+        <span class="mono program-meta">5 DAY · INTERMEDIATE ★ POPULAR</span>
+        <h3>Push / Pull / Legs Pro</h3>
+        <p>Our most-logged split. Push, pull, legs, upper, lower — with progressive overload built in.</p>
+        <div class="program-tags mono"><span>5× week</span><span>~70 min</span><span>PPL</span></div>
+        <a href="programs.html" class="mono program-link">View program →</a>
+      </article>
+      <article class="program-card">
+        <span class="mono program-meta">4 DAY · STRENGTH</span>
+        <h3>Upper / Lower Power</h3>
+        <p>Heavy upper, heavy lower, volume upper, volume lower. For lifters chasing numbers.</p>
+        <div class="program-tags mono"><span>Strength</span><span>Hypertrophy</span><span>Peaking</span></div>
+        <a href="programs.html" class="mono program-link">View program →</a>
+      </article>
+    </div>
+    <a href="programs.html" class="btn btn-outline">Browse all 6 programs</a>
+  </section>
+
+  <!-- TESTIMONIALS -->
+  <section class="testimonials">
+    <div class="section-head">
+      <span class="mono eyebrow">WALL OF LIFTS</span>
+      <h2>They logged. It showed.</h2>
+    </div>
+    <div class="testimonial-grid">
+      <figure class="quote-card">
+        <div class="quote-stars">★★★★★</div>
+        <blockquote>“My creatine streak is 42 days. I haven't missed a leg day since March. Coincidence? No — Nutrilift guilt is real.”</blockquote>
+        <figcaption><strong>Aarav S.</strong><span class="mono"> — 102 kg → 88 kg · Mumbai</span></figcaption>
+      </figure>
+      <figure class="quote-card">
+        <div class="quote-stars">★★★★★</div>
+        <blockquote>“Finally a log that doesn't try to sell me protein every 5 minutes. It just lets me lift and log.”</blockquote>
+        <figcaption><strong>Sarah M.</strong><span class="mono"> — Powerlifter · Delhi</span></figcaption>
+      </figure>
+      <figure class="quote-card">
+        <div class="quote-stars">★★★★★</div>
+        <blockquote>“The barbell animation is stupidly motivating. I check off a set just to see the plate turn red.”</blockquote>
+        <figcaption><strong>Kunal D.</strong><span class="mono"> — 180 kg deadlift · Pune</span></figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <!-- PRICING -->
+  <section class="pricing" id="pricing">
+    <div class="section-head">
+      <span class="mono eyebrow">PRICING</span>
+      <h2>Pay for iron, not for features you'll never use.</h2>
+      <p>Free forever for logging. Pro is for streak-obsessed humans.</p>
+    </div>
+    <div class="pricing-grid">
+      <article class="price-card">
+        <h3>Starter</h3>
+        <div class="price"><strong class="mono">₹0</strong><span class="mono">/ forever</span></div>
+        <ul class="mono">
+          <li>✓ Unlimited lift logging</li>
+          <li>✓ 5-supplement stack</li>
+          <li>✓ Weekly volume chart</li>
+          <li class="muted">— No export / no insights</li>
+        </ul>
+        <a href="#log" class="btn btn-outline btn-block">Stay Free</a>
+      </article>
+      <article class="price-card popular">
+        <div class="popular-badge mono">MOST CHOSEN</div>
+        <h3>Pro</h3>
+        <div class="price"><strong class="mono">₹199</strong><span class="mono">/ month</span></div>
+        <ul class="mono">
+          <li>✓ Everything in Starter</li>
+          <li>✓ Unlimited stack + history</li>
+          <li>✓ PR timeline & streak freeze</li>
+          <li>✓ CSV export & weekly email</li>
+          <li>✓ Program library + swaps</li>
+        </ul>
+        <a href="programs.html" class="btn btn-primary btn-block">Get Pro — 14 days free</a>
+        <span class="mono price-note">Cancel anytime. No questions.</span>
+      </article>
+      <article class="price-card">
+        <h3>Squad</h3>
+        <div class="price"><strong class="mono">₹499</strong><span class="mono">/ month</span></div>
+        <ul class="mono">
+          <li>✓ Everything in Pro</li>
+          <li>✓ 5 seats — coach + lifters</li>
+          <li>✓ Shared leaderboards</li>
+          <li>✓ Coach comments on logs</li>
+        </ul>
+        <a href="programs.html" class="btn btn-outline btn-block">Start Squad</a>
+      </article>
+    </div>
+  </section>
+
+  <!-- FAQ -->
+  <section class="faq" id="faq">
+    <div class="section-head">
+      <span class="mono eyebrow">FAQ</span>
+      <h2>Straight answers.</h2>
+    </div>
+    <div class="faq-list">
+      <details class="faq-item" open>
+        <summary><span>Do I need to create an account?</span><span class="faq-icon"></span></summary>
+        <p>No. Everything saves locally in your browser. Add to home screen and it behaves like an app. Account sync is coming for Pro.</p>
+      </details>
+      <details class="faq-item">
+        <summary><span>Can I change exercises in Today's Session?</span><span class="faq-icon"></span></summary>
+        <p>Yes — the table is just a starter Push Day. Swap any row, it persists for today, and your PRs track whatever you log.</p>
+      </details>
+      <details class="faq-item">
+        <summary><span>How is the streak calculated?</span><span class="faq-icon"></span></summary>
+        <p>A day counts if you log at least one lift or one supplement. Today is forgiven until midnight — yesterday's streak stays alive until you miss it.</p>
+      </details>
+      <details class="faq-item">
+        <summary><span>Is my data private?</span><span class="faq-icon"></span></summary>
+        <p>100% localStorage. Nothing leaves your device. Clear storage = reset. We don't sell supplements, we log them.</p>
+      </details>
+      <details class="faq-item">
+        <summary><span>Dark mode?</span><span class="faq-icon"></span></summary>
+        <p>Toggle top-right. It remembers your choice and respects system preference on first visit.</p>
+      </details>
+    </div>
+  </section>
+
+  <!-- FINAL CTA -->
+  <section class="cta-banner">
+    <div class="cta-inner">
+      <h2>Start today's log. <span>Keep the streak.</span></h2>
+      <p class="mono">Push Day is waiting. It takes 12 seconds to log your first set.</p>
+      <div class="cta-actions">
+        <a href="#log" class="btn btn-primary btn-lg">Log Today's Session →</a>
+        <a href="programs.html" class="btn btn-ghost btn-lg">Explore Programs</a>
+      </div>
+    </div>
+  </section>
+
   <footer class="site-footer">
-    <span class="footer-brand">NUTRILIFT<span>.</span></span>
-    <span class="footer-line">Logged, not guessed.</span>
-    <span class="footer-meta mono">SQUAT · BENCH · DEADLIFT · RINSE · REPEAT</span>
+    <div class="footer-grid">
+      <div class="footer-brand-col">
+        <span class="footer-brand">NUTRILIFT<span>.</span></span>
+        <p>Logged, not guessed. Training & stack log for the 5am crew. No ads, no supplement store, just the log.</p>
+        <div class="footer-social mono">
+          <a href="#">Instagram</a><a href="#">X</a><a href="#">YouTube</a>
+        </div>
+      </div>
+      <div class="footer-col">
+        <span class="mono footer-title">Product</span>
+        <a href="#log">Today's Log</a><a href="#stack">Stack</a><a href="programs.html">Programs</a><a href="#pricing">Pricing</a>
+      </div>
+      <div class="footer-col">
+        <span class="mono footer-title">Resources</span>
+        <a href="#method">The Method</a><a href="#week">This Week</a><a href="#faq">FAQ</a><a href="#">Changelog</a>
+      </div>
+      <div class="footer-col">
+        <span class="mono footer-title">Stay in the loop</span>
+        <p class="mono footer-note">Weekly volume + adherence recap. Unsubscribe anytime.</p>
+        <form class="footer-form" onsubmit="event.preventDefault(); this.reset(); alert('You’re on the list. Check your inbox.');">
+          <input type="email" placeholder="you@email.com" required aria-label="Email">
+          <button class="btn btn-primary btn-sm" type="submit">Subscribe</button>
+        </form>
+      </div>
+    </div>
+    <div class="footer-bottom mono">
+      <span>© 2026 Nutrilift · Built for lifters, not influencers.</span>
+      <span>SQUAT · BENCH · DEADLIFT · RINSE · REPEAT</span>
+    </div>
   </footer>
 
   <script src="script.js"></script>
