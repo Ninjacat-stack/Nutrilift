@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Nutrilift Programs — 6 proven splits from foundation to peaking. Pick a program and log every set.">
+  <meta name="theme-color" content="#C81E3D">
+  <title>Programs — Nutrilift</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect x='8' y='8' width='16' height='16' fill='%23C81E3D' transform='rotate(45 16 16)'/%3E%3C/svg%3E">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  <script>
+    (function() {
+      try {
+        var s = JSON.parse(localStorage.getItem("nutrilift:v1") || "{}");
+        var t = s.theme || (window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+        document.documentElement.setAttribute("data-theme", t);
+      } catch(e){}
+    })();
+  </script>
+</head>
+<body>
+
+  <header class="masthead">
+    <div class="masthead-left">
+      <a href="index.html" class="wordmark"><span class="mark"></span>NUTRILIFT<span class="dot">.</span></a>
+    </div>
+    <nav class="masthead-center" aria-label="Primary">
+      <a href="index.html#log">Log</a>
+      <a href="index.html#stack">Stack</a>
+      <a href="index.html#week">Week</a>
+      <a href="programs.html" class="active">Programs</a>
+      <a href="index.html#pricing">Pricing</a>
+    </nav>
+    <div class="masthead-right">
+      <span class="date-badge mono" id="dateBadge"></span>
+      <span class="streak">STREAK <strong class="mono" id="streakCount">0</strong> DAYS</span>
+      <a href="index.html#log" class="btn btn-sm btn-primary hide-mobile">Open Log</a>
+      <button id="themeToggle" class="mode-switch" aria-pressed="false" aria-label="Switch to dark mode">
+        <span class="switch-track"><span class="switch-thumb"></span></span>
+        <span class="switch-label">DARK</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- Hero -->
+  <section class="programs-hero">
+    <div class="programs-hero-inner">
+      <div>
+        <span class="mono eyebrow" style="display:inline-block; font-size:11px; letter-spacing:0.12em; color:var(--iron-red); border:1px solid var(--iron-red-dim); padding:4px 10px; border-radius:20px; background:var(--iron-red-glow);">PROGRAM LIBRARY · 6 SPLITS</span>
+        <h1>PICK A PROGRAM.<br><span>STICK TO IT.</span></h1>
+        <p>Every program here logs straight into your Today’s Session. No PDFs, no spreadsheets — just check off sets and the barbell loads. Filter by days, goal, and level.</p>
+        <div class="filter-row" id="filterRow">
+          <button class="filter-btn active" data-filter="all">All</button>
+          <button class="filter-btn" data-filter="3day">3 Day</button>
+          <button class="filter-btn" data-filter="4day">4 Day</button>
+          <button class="filter-btn" data-filter="5day">5 Day</button>
+          <button class="filter-btn" data-filter="6day">6 Day</button>
+          <button class="filter-btn" data-filter="strength">Strength</button>
+          <button class="filter-btn" data-filter="hypertrophy">Hypertrophy</button>
+        </div>
+      </div>
+      <div style="display:grid; gap:12px;">
+        <div style="background:var(--paper); border:1px solid var(--line); border-radius:12px; padding:16px;">
+          <div style="display:flex; justify-content:space-between; font-size:11px;" class="mono"><span style="color:var(--muted);">ACTIVE PROGRAM</span><span style="color:var(--success);">● PUSH DAY</span></div>
+          <strong style="font-family:var(--font-display); font-size:18px; display:block; margin:8px 0 4px;">Push / Pull / Legs Pro</strong>
+          <span style="font-size:12px; color:var(--ink-soft);">5 day · Week 3 of 8 · Next: Pull Day</span>
+          <div style="height:6px; background:var(--line); border-radius:3px; margin-top:10px; overflow:hidden;"><span style="display:block; width:38%; height:100%; background:var(--iron-red);"></span></div>
+          <div style="display:flex; justify-content:space-between; margin-top:6px;" class="mono"><span style="font-size:10px; color:var(--muted);">38% complete</span><a href="index.html#log" style="font-size:11px; color:var(--iron-red); text-decoration:none;">Continue →</a></div>
+        </div>
+        <div style="background:var(--ink); color:var(--surface); border-radius:12px; padding:14px; display:flex; justify-content:space-between; align-items:center;">
+          <span style="font-size:13px; font-weight:600;">Need a coach?</span><a href="index.html#pricing" class="btn btn-sm" style="background:#fff; color:var(--ink); border:none;">Squad ₹499</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Grid -->
+  <section class="programs-grid" id="programsGrid">
+
+    <article class="program-full-card" data-tags="3day hypertrophy beginner">
+      <div class="pfc-top"><span class="pfc-badge">3 DAY · BEGINNER</span><strong>Full-Body Foundation</strong></div>
+      <div class="pfc-body">
+        <h3>Full-Body Foundation</h3>
+        <p>3 full-body sessions, compound-first. 45 minutes, 3 exercises per day. The fastest way to build a base without burnout.</p>
+        <div class="pfc-meta"><span>45 min</span><span>Hypertrophy</span><span>RPE 7</span></div>
+        <div class="pfc-foot"><button class="mono" data-program="fbf">View details →</button><span class="pfc-stats mono">★ 4.9 · 2.1k logs</span></div>
+      </div>
+    </article>
+
+    <article class="program-full-card" data-tags="4day strength">
+      <div class="pfc-top" style="background: linear-gradient(135deg, #1a1a1a 0%, #C81E3D 100%);"><span class="pfc-badge">4 DAY · STRENGTH</span><strong>Upper / Lower Power</strong></div>
+      <div class="pfc-body">
+        <h3>Upper / Lower Power</h3>
+        <p>Heavy upper, heavy lower, volume upper, volume lower. For lifters chasing numbers on the big three.</p>
+        <div class="pfc-meta"><span>70 min</span><span>Strength</span><span>4× week</span></div>
+        <div class="pfc-foot"><button class="mono" data-program="ul">View details →</button><span class="pfc-stats mono">★ 4.8 · 1.6k logs</span></div>
+      </div>
+    </article>
+
+    <article class="program-full-card" data-tags="5day hypertrophy strength">
+      <div class="pfc-top" style="background: linear-gradient(135deg, #C81E3D 0%, #6a1020 100%);"><span class="pfc-badge">5 DAY · POPULAR</span><strong>Push / Pull / Legs Pro</strong></div>
+      <div class="pfc-body">
+        <h3>Push / Pull / Legs Pro</h3>
+        <p>Most-logged split. PPL + Upper + Lower with progressive overload. Built for 12-week blocks.</p>
+        <div class="pfc-meta"><span>70 min</span><span>PPL</span><span>Intermediate</span></div>
+        <div class="pfc-foot"><button class="mono" data-program="ppl">View details →</button><span class="pfc-stats mono">★ 4.9 · 4.3k logs</span></div>
+      </div>
+    </article>
+
+    <article class="program-full-card" data-tags="4day hypertrophy">
+      <div class="pfc-top" style="background: linear-gradient(135deg, #2b0b12 0%, #C81E3D 60%, #ff6b6b 100%);"><span class="pfc-badge">4 DAY · HYPERTROPHY</span><strong>Bro Split 2.0</strong></div>
+      <div class="pfc-body">
+        <h3>Bro Split 2.0</h3>
+        <p>Chest, Back, Legs, Arms — but with modern volume landmarks and no junk sets. Every set has a purpose.</p>
+        <div class="pfc-meta"><span>60 min</span><span>Hypertrophy</span><span>High volume</span></div>
+        <div class="pfc-foot"><button class="mono" data-program="bro">View details →</button><span class="pfc-stats mono">★ 4.7 · 980 logs</span></div>
+      </div>
+    </article>
+
+    <article class="program-full-card" data-tags="6day hypertrophy">
+      <div class="pfc-top" style="background: linear-gradient(135deg, #0f0f0f 0%, #3a0a14 50%, #C81E3D 100%);"><span class="pfc-badge">6 DAY · ADVANCED</span><strong>High Frequency</strong></div>
+      <div class="pfc-body">
+        <h3>High Frequency</h3>
+        <p>6 days, short sessions, high frequency. One muscle twice per week without frying your CNS.</p>
+        <div class="pfc-meta"><span>40 min</span><span>6× week</span><span>Advanced</span></div>
+        <div class="pfc-foot"><button class="mono" data-program="hf">View details →</button><span class="pfc-stats mono">★ 4.8 · 720 logs</span></div>
+      </div>
+    </article>
+
+    <article class="program-full-card" data-tags="5day 6day strength">
+      <div class="pfc-top" style="background: linear-gradient(135deg, #C81E3D 0%, #211714 100%);"><span class="pfc-badge">5-6 DAY · PEAK</span><strong>Comp Peaking</strong></div>
+      <div class="pfc-body">
+        <h3>Comp Peaking Cycle</h3>
+        <p>8-week peaking block for SBD. Heavy singles, back-offs, taper week. Test day on week 8.</p>
+        <div class="pfc-meta"><span>90 min</span><span>Peaking</span><span>Strength</span></div>
+        <div class="pfc-foot"><button class="mono" data-program="peak">View details →</button><span class="pfc-stats mono">★ 4.9 · 540 logs</span></div>
+      </div>
+    </article>
+
+  </section>
+
+  <!-- FAQ strip -->
+  <section style="max-width:1180px; margin:42px auto 0; padding:0 clamp(20px,5vw,56px);">
+    <div style="background:var(--surface); border:1px solid var(--line); border-radius:12px; padding:20px; display:grid; grid-template-columns:1fr 1fr; gap:20px;">
+      <div>
+        <h3 style="font-family:var(--font-display); margin:0 0 8px;">How switching works</h3>
+        <p style="font-size:13px; line-height:1.6; color:var(--ink-soft); margin:0;">Click “Set active” in any program detail. Tomorrow’s log updates automatically. Your PRs and streak stay intact.</p>
+      </div>
+      <div style="background:var(--paper); border:1px solid var(--line); border-radius:10px; padding:14px;">
+        <span class="mono" style="font-size:11px; color:var(--muted);">PRO TIP</span>
+        <p style="font-size:13px; margin:6px 0 0; line-height:1.5;">Don’t program-hop every week. Pick one, log 6 weeks, then evaluate volume vs recovery in the Week panel.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Modal -->
+  <div class="modal-overlay" id="programModal" aria-hidden="true">
+    <div class="modal-box" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+      <button class="modal-close" id="modalClose" aria-label="Close">×</button>
+      <h3 id="modalTitle"></h3>
+      <p id="modalDesc"></p>
+      <div id="modalMeta" style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:10px;"></div>
+      <table class="modal-table" id="modalTable">
+        <thead><tr><th>Day</th><th>Focus</th><th>Key lifts</th></tr></thead>
+        <tbody></tbody>
+      </table>
+      <div style="display:flex; gap:10px; margin-top:16px;">
+        <button class="btn btn-primary" id="modalSetActive" style="flex:1;">Set as active program</button>
+        <a href="index.html#log" class="btn btn-outline" style="flex:1; text-align:center;">Back to log</a>
+      </div>
+      <p class="mono" style="font-size:11px; color:var(--muted); text-align:center; margin-top:10px;">Logs to your dashboard instantly. No import needed.</p>
+    </div>
+  </div>
+
+  <footer class="site-footer">
+    <div class="footer-grid">
+      <div class="footer-brand-col">
+        <span class="footer-brand">NUTRILIFT<span>.</span></span>
+        <p>Logged, not guessed. Training & stack log for the 5am crew.</p>
+        <div class="footer-social mono"><a href="index.html">Home</a><a href="programs.html">Programs</a><a href="index.html#pricing">Pricing</a></div>
+      </div>
+      <div class="footer-col"><span class="mono footer-title">Product</span><a href="index.html#log">Today's Log</a><a href="index.html#stack">Stack</a><a href="programs.html">Programs</a><a href="index.html#pricing">Pricing</a></div>
+      <div class="footer-col"><span class="mono footer-title">Resources</span><a href="index.html#method">The Method</a><a href="index.html#faq">FAQ</a><a href="#">Changelog</a></div>
+      <div class="footer-col"><span class="mono footer-title">Stay in the loop</span><p class="mono footer-note">Weekly volume + adherence recap.</p><form class="footer-form" onsubmit="event.preventDefault(); this.reset(); alert('You’re on the list.');"><input type="email" placeholder="you@email.com" required aria-label="Email"><button class="btn btn-primary btn-sm" type="submit">Subscribe</button></form></div>
+    </div>
+    <div class="footer-bottom mono"><span>© 2026 Nutrilift · Built for lifters.</span><span>SQUAT · BENCH · DEADLIFT · RINSE · REPEAT</span></div>
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>
