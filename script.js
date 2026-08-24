@@ -84,7 +84,8 @@ function applyTheme(theme) {
   if (toggle) {
     const isDark = theme === "dark";
     toggle.setAttribute("aria-pressed", String(isDark));
-    toggle.querySelector(".switch-label").textContent = isDark ? "LIGHT" : "DARK";
+    const label = toggle.querySelector(".switch-label");
+    if (label) label.textContent = isDark ? "LIGHT" : "DARK";
     toggle.setAttribute("aria-label", isDark ? "Switch to light mode" : "Switch to dark mode");
   }
   const data = loadStorage();
@@ -94,6 +95,7 @@ function applyTheme(theme) {
 
 function initThemeToggle() {
   const toggle = document.getElementById("themeToggle");
+  if (!toggle) return;
   const data = loadStorage();
   const initialTheme = data.theme || (window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
   applyTheme(initialTheme);
@@ -106,6 +108,7 @@ function initThemeToggle() {
 
 function initHeaderShrink() {
   const header = document.querySelector(".masthead");
+  if (!header) return;
   const ADD_THRESHOLD = 60;
   const REMOVE_THRESHOLD = 20;
   let isScrolled = false;
@@ -125,17 +128,22 @@ function initHeaderShrink() {
 }
 
 function initDateAndStreak() {
-  document.getElementById("dateBadge").textContent = formatDateBadge();
-  const data = loadStorage();
-  const streak = computeStreak(data);
-  document.getElementById("streakCount").textContent = streak;
+  const badge = document.getElementById("dateBadge");
+  const streakEl = document.getElementById("streakCount");
+  if (badge) badge.textContent = formatDateBadge();
+  if (streakEl) {
+    const data = loadStorage();
+    const streak = computeStreak(data);
+    streakEl.textContent = streak;
+  }
 }
 
 function initBarbellProgress() {
   const rows = document.querySelectorAll("#logSheet tbody tr");
   const platesRow = document.getElementById("platesRow");
+  if (!platesRow || !rows.length) return;
   const sizes = [22, 19, 16, 14, 12];
-
+  platesRow.innerHTML = "";
   rows.forEach((row, i) => {
     const disc = document.createElement("span");
     disc.className = "plate-disc";
@@ -145,23 +153,23 @@ function initBarbellProgress() {
     disc.dataset.index = i;
     platesRow.appendChild(disc);
   });
-
   updateBarbellProgress();
 }
 
 function updateBarbellProgress() {
   const rows = document.querySelectorAll("#logSheet tbody tr");
   const discs = document.querySelectorAll(".plate-disc");
+  const doneEl = document.getElementById("doneCount");
+  const totalEl = document.getElementById("totalCount");
+  if (!rows.length) return;
   let doneCount = 0;
-
   rows.forEach((row, i) => {
     const isDone = row.getAttribute("data-done") === "true";
     if (isDone) doneCount++;
     if (discs[i]) discs[i].classList.toggle("loaded", isDone);
   });
-
-  document.getElementById("doneCount").textContent = doneCount;
-  document.getElementById("totalCount").textContent = rows.length;
+  if (doneEl) doneEl.textContent = doneCount;
+  if (totalEl) totalEl.textContent = rows.length;
 }
 
 function applyLiftState(lifts) {
@@ -219,22 +227,24 @@ function initStackAdherence() {
 
 function updateStackAdherence() {
   const cards = document.querySelectorAll(".pill-card");
+  if (!cards.length) return;
   const taken = document.querySelectorAll('.pill-card[data-taken="true"]').length;
   const pct = Math.round((taken / cards.length) * 100);
-  document.getElementById("adherencePct").textContent = pct;
+  const el = document.getElementById("adherencePct");
+  if (el) el.textContent = pct;
 }
 
 function persistCurrentState() {
   const data = loadStorage();
   const rows = document.querySelectorAll("#logSheet tbody tr");
   const cards = document.querySelectorAll(".pill-card");
-
+  if (!rows.length && !cards.length) return;
   const lifts = Array.from(rows).map(r => r.getAttribute("data-done") === "true");
   const stack = Array.from(cards).map(c => c.getAttribute("data-taken") === "true");
-
   setTodayState(data, lifts, stack);
   const streak = computeStreak(data);
-  document.getElementById("streakCount").textContent = streak;
+  const streakEl = document.getElementById("streakCount");
+  if (streakEl) streakEl.textContent = streak;
 }
 
 function loadPersistedState() {
@@ -249,6 +259,147 @@ function loadPersistedState() {
   }
 }
 
+// — Reveal on scroll —
+function initReveal() {
+  const els = document.querySelectorAll(".hero, .method, .panel, .insights, .programs-teaser, .testimonials, .pricing, .faq, .cta-banner, .programs-hero, .programs-grid");
+  if (!els.length) return;
+  els.forEach(el => el.classList.add("reveal"));
+  const io = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        e.target.classList.add("in");
+        io.unobserve(e.target);
+      }
+    });
+  }, { threshold: 0.08 });
+  els.forEach(el => io.observe(el));
+}
+
+// — Programs page: filters + modal —
+const PROGRAM_DATA = {
+  fbf: {
+    title: "Full-Body Foundation — 3 Day",
+    desc: "3 sessions per week, full-body each day. Rotate squat/bench/row patterns. Perfect for beginners or time-crunched lifters.",
+    meta: ["3× week", "45 min", "Beginner", "Hypertrophy"],
+    rows: [["Mon","Full Body A","Squat 3×5 · Bench 3×6 · Row 3×8"],["Wed","Full Body B","Front Squat 3×6 · OHP 3×8 · RDL 3×10"],["Fri","Full Body A+","Squat 3×5 · Incline Press 3×10 · Lat Pulldown 3×12"]]
+  },
+  ul: {
+    title: "Upper / Lower Power — 4 Day",
+    desc: "Heavy upper, heavy lower, volume upper, volume lower. Undulating periodization keeps PRs moving.",
+    meta: ["4× week","70 min","Intermediate","Strength"],
+    rows: [["Mon","Upper Heavy","Bench 4×4 · Row 4×6 · OHP 3×8"],["Tue","Lower Heavy","Squat 4×4 · RDL 3×6 · Leg Press 3×10"],["Thu","Upper Volume","Bench 3×10 · Pull-up 3×10 · Lateral Raise 4×15"],["Fri","Lower Volume","Front Squat 3×8 · Deadlift 3×5 · Calf Raise 4×15"]]
+  },
+  ppl: {
+    title: "Push / Pull / Legs Pro — 5 Day",
+    desc: "Our most-logged split. Push, pull, legs, then upper & lower volume days. Progressive overload built week-to-week.",
+    meta: ["5× week","70 min","Intermediate","PPL"],
+    rows: [["Mon","Push","Bench 4×6 · OHP 3×8 · Dips 3×10"],["Tue","Pull","Deadlift 3×5 · Row 4×8 · Curl 3×12"],["Wed","Legs","Squat 4×6 · RDL 3×8 · Leg Curl 3×12"],["Thu","Upper","Incline Bench 3×10 · Pull-up 3×8 · Lateral Raise 4×15"],["Fri","Lower","Front Squat 3×8 · Hip Thrust 3×10 · Calf 4×15"]]
+  },
+  bro: {
+    title: "Bro Split 2.0 — 4 Day",
+    desc: "Chest, Back, Legs, Arms — curated with modern volume science. No junk sets, every set has a purpose.",
+    meta: ["4× week","60 min","Hypertrophy","High volume"],
+    rows: [["Mon","Chest + Tris","Bench 4×8 · Incline DB 3×10 · Triceps 3×12"],["Tue","Back + Bis","Row 4×8 · Lat Pulldown 3×12 · Curl 3×12"],["Thu","Legs","Squat 4×6 · Leg Press 3×12 · RDL 3×10"],["Fri","Arms + Delts","OHP 3×8 · Lateral Raise 4×15 · Superset Arms 3×12"]]
+  },
+  hf: {
+    title: "High Frequency — 6 Day",
+    desc: "6 short sessions, each muscle twice per week. Great for intermediates who love daily momentum.",
+    meta: ["6× week","40 min","Advanced","Frequency"],
+    rows: [["Mon","Push A","Bench 3×6 · OHP 3×8 · Triceps 3×12"],["Tue","Pull A","Row 3×8 · Pull-up 3×8 · Curl 3×12"],["Wed","Legs A","Squat 3×5 · RDL 3×8 · Leg Extension 3×12"],["Thu","Push B","Incline Bench 3×10 · Dips 3×10 · Lateral Raise 3×15"],["Fri","Pull B","Deadlift 3×5 · Seated Row 3×10 · Face Pull 3×15"],["Sat","Legs B","Front Squat 3×8 · Hip Thrust 3×10 · Calf 4×15"]]
+  },
+  peak: {
+    title: "Comp Peaking Cycle — 8 Weeks",
+    desc: "Peak for SBD. Heavy singles with back-offs, then taper. Test day week 8. Not for beginners.",
+    meta: ["5-6× week","90 min","Advanced","Peaking"],
+    rows: [["Mon","Squat Heavy","Squat 5×3 @85% · Paused Squat 3×4"],["Tue","Bench Heavy","Bench 5×3 @85% · Close-Grip 3×6"],["Thu","Deadlift Heavy","Deadlift 4×3 @85% · RDL 3×6"],["Fri","Volume Upper","Bench 3×8 · Row 4×8 · OHP 3×10"],["Sat","Volume Lower","Front Squat 3×6 · Leg Press 3×10"]]
+  }
+};
+
+function initProgramsPage() {
+  const grid = document.getElementById("programsGrid");
+  const filterRow = document.getElementById("filterRow");
+  const modal = document.getElementById("programModal");
+  if (!grid) return;
+
+  // filters
+  if (filterRow) {
+    filterRow.addEventListener("click", e => {
+      const btn = e.target.closest(".filter-btn");
+      if (!btn) return;
+      filterRow.querySelectorAll(".filter-btn").forEach(b => b.classList.remove("active"));
+      btn.classList.add("active");
+      const f = btn.dataset.filter;
+      grid.querySelectorAll(".program-full-card").forEach(card => {
+        if (f === "all") card.classList.remove("hidden");
+        else {
+          const tags = (card.dataset.tags || "").split(" ");
+          card.classList.toggle("hidden", !tags.includes(f));
+        }
+      });
+    });
+  }
+
+  // modal
+  if (!modal) return;
+  const modalTitle = document.getElementById("modalTitle");
+  const modalDesc = document.getElementById("modalDesc");
+  const modalMeta = document.getElementById("modalMeta");
+  const modalTableBody = document.querySelector("#modalTable tbody");
+  const modalClose = document.getElementById("modalClose");
+  const modalSetActive = document.getElementById("modalSetActive");
+
+  let activeKey = null;
+
+  function openModal(key) {
+    const d = PROGRAM_DATA[key];
+    if (!d) return;
+    activeKey = key;
+    modalTitle.textContent = d.title;
+    modalDesc.textContent = d.desc;
+    modalMeta.innerHTML = d.meta.map(m => `<span style="background:var(--paper); border:1px solid var(--line); padding:4px 8px; border-radius:20px; font-family:var(--font-mono); font-size:11px; color:var(--muted);">${m}</span>`).join("");
+    modalTableBody.innerHTML = d.rows.map(r => `<tr><td class="mono">${r[0]}</td><td>${r[1]}</td><td class="mono" style="font-size:11px; color:var(--ink-soft);">${r[2]}</td></tr>`).join("");
+    modal.classList.add("open");
+    modal.setAttribute("aria-hidden", "false");
+    document.body.style.overflow = "hidden";
+  }
+  function closeModal() {
+    modal.classList.remove("open");
+    modal.setAttribute("aria-hidden", "true");
+    document.body.style.overflow = "";
+    activeKey = null;
+  }
+
+  grid.addEventListener("click", e => {
+    const btn = e.target.closest("[data-program]");
+    if (!btn) return;
+    openModal(btn.dataset.program);
+  });
+
+  modalClose.addEventListener("click", closeModal);
+  modal.addEventListener("click", e => {
+    if (e.target === modal) closeModal();
+  });
+  document.addEventListener("keydown", e => {
+    if (e.key === "Escape" && modal.classList.contains("open")) closeModal();
+  });
+
+  modalSetActive.addEventListener("click", () => {
+    if (!activeKey) return;
+    const data = loadStorage();
+    data.activeProgram = activeKey;
+    saveStorage(data);
+    modalSetActive.textContent = "✓ Active — synced to log";
+    modalSetActive.style.background = "var(--success)";
+    modalSetActive.style.borderColor = "var(--success)";
+    setTimeout(() => {
+      closeModal();
+      modalSetActive.textContent = "Set as active program";
+      modalSetActive.style.background = "";
+      modalSetActive.style.borderColor = "";
+    }, 900);
+  });
+}
+
 document.addEventListener("DOMContentLoaded", () => {
   initThemeToggle();
   initHeaderShrink();
@@ -257,4 +408,6 @@ document.addEventListener("DOMContentLoaded", () => {
   initCheckButtons();
   initStackAdherence();
   loadPersistedState();
+  initReveal();
+  initProgramsPage();
 });
