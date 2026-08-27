@@ -22,6 +22,8 @@
   </script>
 </head>
 <body>
+  <div class="scene-bg" aria-hidden="true"><div class="scene-grid"></div><div class="orb orb-1"></div><div class="orb orb-2"></div><div class="orb orb-3"></div></div>
+  <div class="cursor-glow" id="cursorGlow" aria-hidden="true"></div>
 
   <header class="masthead">
     <div class="masthead-left">
@@ -47,7 +49,8 @@
 
   <!-- Hero -->
   <section class="programs-hero">
-    <div class="programs-hero-inner">
+    <div class="programs-hero-inner" style="position:relative; overflow:hidden;">
+      <div class="hero-ambient" aria-hidden="true" style="position:absolute; inset:0; pointer-events:none;"><div class="hero-glow" style="position:absolute; width:560px; height:560px; top:-160px; right:-120px; background:radial-gradient(circle, var(--iron-red-glow) 0%, transparent 70%);"></div></div>
       <div>
         <span class="mono eyebrow" style="display:inline-block; font-size:11px; letter-spacing:0.12em; color:var(--iron-red); border:1px solid var(--iron-red-dim); padding:4px 10px; border-radius:20px; background:var(--iron-red-glow);">PROGRAM LIBRARY · 6 SPLITS</span>
         <h1>PICK A PROGRAM.<br><span>STICK TO IT.</span></h1>
@@ -100,7 +103,7 @@
       </div>
     </article>
 
-    <article class="program-full-card" data-tags="5day hypertrophy strength">
+    <article class="program-full-card tilt-3d subtle-tilt" data-tilt data-tags="5day hypertrophy strength">
       <div class="pfc-top" style="background: linear-gradient(135deg, #C81E3D 0%, #6a1020 100%);"><span class="pfc-badge">5 DAY · POPULAR</span><strong>Push / Pull / Legs Pro</strong></div>
       <div class="pfc-body">
         <h3>Push / Pull / Legs Pro</h3>
