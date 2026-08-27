@@ -259,9 +259,11 @@ function loadPersistedState() {
   }
 }
 
-// — Reveal on scroll —
+// — Reveal — clean fade + slight rise only
 function initReveal() {
-  const els = document.querySelectorAll(".hero, .method, .panel, .insights, .programs-teaser, .testimonials, .pricing, .faq, .cta-banner, .programs-hero, .programs-grid");
+  const prefersReduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  if (prefersReduced) return;
+  const els = document.querySelectorAll(".hero, .method, .panel, .insights, .programs-teaser, .testimonials, .pricing, .faq, .cta-banner, .programs-hero");
   if (!els.length) return;
   els.forEach(el => el.classList.add("reveal"));
   const io = new IntersectionObserver(entries => {
@@ -271,9 +273,56 @@ function initReveal() {
         io.unobserve(e.target);
       }
     });
-  }, { threshold: 0.08 });
+  }, { threshold: 0.12, rootMargin: "0px 0px -32px 0px" });
   els.forEach(el => io.observe(el));
 }
+
+// — Subtle Tilt — only for .subtle-tilt, very minimal 1.6deg, no shadow follow
+function initTilt3D() {
+  const prefersReduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const isTouch = window.matchMedia("(pointer: coarse)").matches;
+  if (prefersReduced || isTouch) return;
+  const cards = document.querySelectorAll(".subtle-tilt[data-tilt]");
+  if (!cards.length) return;
+  const MAX_ROT = 1.6;
+
+  cards.forEach(card => {
+    let raf = null;
+    let mx = 0, my = 0;
+    let hovering = false;
+
+    const onMove = (e) => {
+      const r = card.getBoundingClientRect();
+      const cx = r.left + r.width/2;
+      const cy = r.top + r.height/2;
+      mx = (e.clientX - cx) / (r.width/2);
+      my = (e.clientY - cy) / (r.height/2);
+      if (!raf) raf = requestAnimationFrame(apply);
+    };
+    const apply = () => {
+      raf = null;
+      if (!hovering) return;
+      const ry = mx * MAX_ROT;
+      const rx = -my * MAX_ROT;
+      card.style.transform = `perspective(800px) rotateX(${rx.toFixed(2)}deg) rotateY(${ry.toFixed(2)}deg)`;
+    };
+    const enter = () => { hovering = true; card.style.transition = "transform 0.08s linear"; };
+    const leave = () => {
+      hovering = false;
+      if (raf) { cancelAnimationFrame(raf); raf = null; }
+      card.style.transition = "transform 0.38s cubic-bezier(0.2,0.8,0.2,1)";
+      card.style.transform = "";
+    };
+    card.addEventListener("mouseenter", enter, { passive: true });
+    card.addEventListener("mousemove", onMove, { passive: true });
+    card.addEventListener("mouseleave", leave, { passive: true });
+    card.addEventListener("blur", leave);
+  });
+}
+
+// — Parallax & cursor glow disabled for clean premium feel — kept as no-ops for compat
+function initParallax() { return; }
+function initCursorGlow() { return; }
 
 // — Programs page: filters + modal —
 const PROGRAM_DATA = {
@@ -409,5 +458,8 @@ document.addEventListener("DOMContentLoaded", () => {
   initStackAdherence();
   loadPersistedState();
   initReveal();
+  initTilt3D();
+  initParallax();
+  initCursorGlow();
   initProgramsPage();
 });
