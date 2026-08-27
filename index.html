@@ -22,6 +22,8 @@
   </script>
 </head>
 <body>
+  <div class="scene-bg" aria-hidden="true"><div class="scene-grid"></div><div class="orb orb-1"></div><div class="orb orb-2"></div><div class="orb orb-3"></div></div>
+  <div class="cursor-glow" id="cursorGlow" aria-hidden="true"></div>
 
   <!-- Masthead -->
   <header class="masthead">
@@ -48,7 +50,8 @@
 
   <!-- HERO -->
   <section class="hero">
-    <div class="hero-inner">
+    <div class="hero-inner tilt-3d subtle-tilt" data-tilt id="heroInner">
+      <div class="hero-ambient" aria-hidden="true"><div class="hero-glow"></div><div class="hero-grid"></div><div class="hero-orb hero-orb-1"></div><div class="hero-orb hero-orb-2"></div></div>
       <div class="hero-copy">
         <div class="hero-eyebrow mono"><span class="eyebrow-dot"></span> EST. 2024 · BUILT FOR THE 5AM CREW</div>
         <h1 class="hero-title">LOGGED,<br><span class="accent">NOT GUESSED.</span></h1>
@@ -110,7 +113,7 @@
           <li>→ Export to CSV / Sheets</li>
         </ul>
       </article>
-      <article class="feature-card featured">
+      <article class="feature-card featured tilt-3d subtle-tilt" data-tilt>
         <div class="feature-icon">⬢</div>
         <h3>Stack adherence, not reminders spam</h3>
         <p>Your supplement stack is a ritual, not a notification hell. One-tap pop, streaks, and weekly adherence that matters.</p>
@@ -362,7 +365,7 @@
         <div class="program-tags mono"><span>Squat</span><span>Bench</span><span>Row</span></div>
         <a href="programs.html" class="mono program-link">View program →</a>
       </article>
-      <article class="program-card featured">
+      <article class="program-card featured tilt-3d subtle-tilt" data-tilt>
         <span class="mono program-meta">5 DAY · INTERMEDIATE ★ POPULAR</span>
         <h3>Push / Pull / Legs Pro</h3>
         <p>Our most-logged split. Push, pull, legs, upper, lower — with progressive overload built in.</p>
@@ -424,7 +427,7 @@
         </ul>
         <a href="#log" class="btn btn-outline btn-block">Stay Free</a>
       </article>
-      <article class="price-card popular">
+      <article class="price-card popular tilt-3d subtle-tilt" data-tilt>
         <div class="popular-badge mono">MOST CHOSEN</div>
         <h3>Pro</h3>
         <div class="price"><strong class="mono">₹199</strong><span class="mono">/ month</span></div>
