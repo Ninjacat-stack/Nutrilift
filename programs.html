@@ -22,7 +22,8 @@
   </script>
 </head>
 <body>
-  <div class="scene-bg" aria-hidden="true"><div class="scene-grid"></div><div class="orb orb-1"></div><div class="orb orb-2"></div><div class="orb orb-3"></div></div>
+  <a href="#programsGrid" class="skip-link">Skip to content</a>
+  <div class="scene-bg" aria-hidden="true"><div class="scene-grid"></div><div class="orb orb-1"></div></div>
   <div class="cursor-glow" id="cursorGlow" aria-hidden="true"></div>
 
   <header class="masthead">
@@ -50,19 +51,19 @@
   <!-- Hero -->
   <section class="programs-hero">
     <div class="programs-hero-inner" style="position:relative; overflow:hidden;">
-      <div class="hero-ambient" aria-hidden="true" style="position:absolute; inset:0; pointer-events:none;"><div class="hero-glow" style="position:absolute; width:560px; height:560px; top:-160px; right:-120px; background:radial-gradient(circle, var(--iron-red-glow) 0%, transparent 70%);"></div></div>
+      <div class="hero-ambient" aria-hidden="true"><div class="hero-glow"></div></div>
       <div>
         <span class="mono eyebrow" style="display:inline-block; font-size:11px; letter-spacing:0.12em; color:var(--iron-red); border:1px solid var(--iron-red-dim); padding:4px 10px; border-radius:20px; background:var(--iron-red-glow);">PROGRAM LIBRARY · 6 SPLITS</span>
         <h1>PICK A PROGRAM.<br><span>STICK TO IT.</span></h1>
         <p>Every program here logs straight into your Today’s Session. No PDFs, no spreadsheets — just check off sets and the barbell loads. Filter by days, goal, and level.</p>
         <div class="filter-row" id="filterRow">
-          <button class="filter-btn active" data-filter="all">All</button>
-          <button class="filter-btn" data-filter="3day">3 Day</button>
-          <button class="filter-btn" data-filter="4day">4 Day</button>
-          <button class="filter-btn" data-filter="5day">5 Day</button>
-          <button class="filter-btn" data-filter="6day">6 Day</button>
-          <button class="filter-btn" data-filter="strength">Strength</button>
-          <button class="filter-btn" data-filter="hypertrophy">Hypertrophy</button>
+          <button type="button" class="filter-btn active" data-filter="all">All</button>
+          <button type="button" class="filter-btn" data-filter="3day">3 Day</button>
+          <button type="button" class="filter-btn" data-filter="4day">4 Day</button>
+          <button type="button" class="filter-btn" data-filter="5day">5 Day</button>
+          <button type="button" class="filter-btn" data-filter="6day">6 Day</button>
+          <button type="button" class="filter-btn" data-filter="strength">Strength</button>
+          <button type="button" class="filter-btn" data-filter="hypertrophy">Hypertrophy</button>
         </div>
       </div>
       <div style="display:grid; gap:12px;">
@@ -187,11 +188,12 @@
       </div>
       <div class="footer-col"><span class="mono footer-title">Product</span><a href="index.html#log">Today's Log</a><a href="index.html#stack">Stack</a><a href="programs.html">Programs</a><a href="index.html#pricing">Pricing</a></div>
       <div class="footer-col"><span class="mono footer-title">Resources</span><a href="index.html#method">The Method</a><a href="index.html#faq">FAQ</a><a href="#">Changelog</a></div>
-      <div class="footer-col"><span class="mono footer-title">Stay in the loop</span><p class="mono footer-note">Weekly volume + adherence recap.</p><form class="footer-form" onsubmit="event.preventDefault(); this.reset(); alert('You’re on the list.');"><input type="email" placeholder="you@email.com" required aria-label="Email"><button class="btn btn-primary btn-sm" type="submit">Subscribe</button></form></div>
+      <div class="footer-col"><span class="mono footer-title">Stay in the loop</span><p class="mono footer-note">Weekly volume + adherence recap.</p><form class="footer-form" onsubmit="event.preventDefault(); this.reset(); window.NutriliftToast && window.NutriliftToast('You\'re on the list — check your inbox.');"><input type="email" placeholder="you@email.com" required aria-label="Email"><button class="btn btn-primary btn-sm" type="submit">Subscribe</button></form></div>
     </div>
     <div class="footer-bottom mono"><span>© 2026 Nutrilift · Built for lifters.</span><span>SQUAT · BENCH · DEADLIFT · RINSE · REPEAT</span></div>
   </footer>
 
+  <div class="toast-stack" id="toastStack" aria-live="polite" aria-atomic="true"></div>
   <script src="script.js"></script>
 </body>
 </html>

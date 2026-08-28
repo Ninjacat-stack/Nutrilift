@@ -22,7 +22,8 @@
   </script>
 </head>
 <body>
-  <div class="scene-bg" aria-hidden="true"><div class="scene-grid"></div><div class="orb orb-1"></div><div class="orb orb-2"></div><div class="orb orb-3"></div></div>
+  <a href="#dashboard" class="skip-link">Skip to content</a>
+  <div class="scene-bg" aria-hidden="true"><div class="scene-grid"></div><div class="orb orb-1"></div></div>
   <div class="cursor-glow" id="cursorGlow" aria-hidden="true"></div>
 
   <!-- Masthead -->
@@ -51,7 +52,7 @@
   <!-- HERO -->
   <section class="hero">
     <div class="hero-inner tilt-3d subtle-tilt" data-tilt id="heroInner">
-      <div class="hero-ambient" aria-hidden="true"><div class="hero-glow"></div><div class="hero-grid"></div><div class="hero-orb hero-orb-1"></div><div class="hero-orb hero-orb-2"></div></div>
+      <div class="hero-ambient" aria-hidden="true"><div class="hero-glow"></div></div>
       <div class="hero-copy">
         <div class="hero-eyebrow mono"><span class="eyebrow-dot"></span> EST. 2024 · BUILT FOR THE 5AM CREW</div>
         <h1 class="hero-title">LOGGED,<br><span class="accent">NOT GUESSED.</span></h1>
@@ -166,35 +167,35 @@
               <td>Barbell Bench Press</td>
               <td class="mono">4 × 6</td>
               <td class="mono">80 kg</td>
-              <td class="th-check"><button class="check-btn" aria-pressed="true" aria-label="Mark Barbell Bench Press complete"></button></td>
+              <td class="th-check"><button type="button" class="check-btn" aria-pressed="true" aria-label="Mark Barbell Bench Press complete"></button></td>
             </tr>
             <tr data-done="true">
               <td class="idx mono">02</td>
               <td>Incline Dumbbell Press</td>
               <td class="mono">3 × 10</td>
               <td class="mono">28 kg</td>
-              <td class="th-check"><button class="check-btn" aria-pressed="true" aria-label="Mark Incline Dumbbell Press complete"></button></td>
+              <td class="th-check"><button type="button" class="check-btn" aria-pressed="true" aria-label="Mark Incline Dumbbell Press complete"></button></td>
             </tr>
             <tr data-done="false">
               <td class="idx mono">03</td>
               <td>Weighted Dips</td>
               <td class="mono">3 × 8</td>
               <td class="mono">+15 kg</td>
-              <td class="th-check"><button class="check-btn" aria-pressed="false" aria-label="Mark Weighted Dips complete"></button></td>
+              <td class="th-check"><button type="button" class="check-btn" aria-pressed="false" aria-label="Mark Weighted Dips complete"></button></td>
             </tr>
             <tr data-done="false">
               <td class="idx mono">04</td>
               <td>Cable Lateral Raise</td>
               <td class="mono">4 × 15</td>
               <td class="mono">10 kg</td>
-              <td class="th-check"><button class="check-btn" aria-pressed="false" aria-label="Mark Cable Lateral Raise complete"></button></td>
+              <td class="th-check"><button type="button" class="check-btn" aria-pressed="false" aria-label="Mark Cable Lateral Raise complete"></button></td>
             </tr>
             <tr data-done="false">
               <td class="idx mono">05</td>
               <td>Overhead Triceps Extension</td>
               <td class="mono">3 × 12</td>
               <td class="mono">22 kg</td>
-              <td class="th-check"><button class="check-btn" aria-pressed="false" aria-label="Mark Overhead Triceps Extension complete"></button></td>
+              <td class="th-check"><button type="button" class="check-btn" aria-pressed="false" aria-label="Mark Overhead Triceps Extension complete"></button></td>
             </tr>
           </tbody>
         </table>
@@ -215,35 +216,35 @@
               <span class="pill-name">Creatine Monohydrate</span>
               <span class="pill-dose mono">5 g · AM</span>
             </div>
-            <button class="pop-btn" aria-pressed="true" aria-label="Mark Creatine Monohydrate taken"><span class="pop"></span></button>
+            <button type="button" class="pop-btn" aria-pressed="true" aria-label="Mark Creatine Monohydrate taken"><span class="pop"></span></button>
           </li>
           <li class="pill-card" data-taken="true">
             <div class="pill-label">
               <span class="pill-name">Whey Protein Isolate</span>
               <span class="pill-dose mono">30 g · Post-workout</span>
             </div>
-            <button class="pop-btn" aria-pressed="true" aria-label="Mark Whey Protein Isolate taken"><span class="pop"></span></button>
+            <button type="button" class="pop-btn" aria-pressed="true" aria-label="Mark Whey Protein Isolate taken"><span class="pop"></span></button>
           </li>
           <li class="pill-card" data-taken="false">
             <div class="pill-label">
               <span class="pill-name">Pre-Workout Blend</span>
               <span class="pill-dose mono">1 scoop · Pre-lift</span>
             </div>
-            <button class="pop-btn" aria-pressed="false" aria-label="Mark Pre-Workout Blend taken"><span class="pop"></span></button>
+            <button type="button" class="pop-btn" aria-pressed="false" aria-label="Mark Pre-Workout Blend taken"><span class="pop"></span></button>
           </li>
           <li class="pill-card" data-taken="false">
             <div class="pill-label">
               <span class="pill-name">Omega-3 Fish Oil</span>
               <span class="pill-dose mono">2 g · PM</span>
             </div>
-            <button class="pop-btn" aria-pressed="false" aria-label="Mark Omega-3 Fish Oil taken"><span class="pop"></span></button>
+            <button type="button" class="pop-btn" aria-pressed="false" aria-label="Mark Omega-3 Fish Oil taken"><span class="pop"></span></button>
           </li>
           <li class="pill-card" data-taken="false">
             <div class="pill-label">
               <span class="pill-name">Vitamin D3 + K2</span>
               <span class="pill-dose mono">4000 IU · AM</span>
             </div>
-            <button class="pop-btn" aria-pressed="false" aria-label="Mark Vitamin D3 taken"><span class="pop"></span></button>
+            <button type="button" class="pop-btn" aria-pressed="false" aria-label="Mark Vitamin D3 taken"><span class="pop"></span></button>
           </li>
         </ul>
         <div class="stack-tip mono">
@@ -294,7 +295,7 @@
           </div>
         </div>
         <div class="macro-actions">
-          <button class="btn btn-sm btn-outline">+ Add Meal</button>
+          <button type="button" class="btn btn-sm btn-outline" data-toast="Meal logger — connect your nutrition app soon">+ Add Meal</button>
           <span class="mono macro-hint">Target: 165P · 240C · 70F</span>
         </div>
       </section>
@@ -342,9 +343,9 @@
       </div>
       <div class="insight-card cta">
         <p>Your week in one email. No spam, just numbers.</p>
-        <div class="inline-form">
+          <div class="inline-form">
           <input type="email" placeholder="you@email.com" aria-label="Email for weekly recap">
-          <button class="btn btn-primary btn-sm">Get recap</button>
+          <button type="button" class="btn btn-primary btn-sm" data-toast="Weekly recap coming soon — stay tuned!">Get recap</button>
         </div>
       </div>
     </div>
@@ -517,7 +518,7 @@
       <div class="footer-col">
         <span class="mono footer-title">Stay in the loop</span>
         <p class="mono footer-note">Weekly volume + adherence recap. Unsubscribe anytime.</p>
-        <form class="footer-form" onsubmit="event.preventDefault(); this.reset(); alert('You’re on the list. Check your inbox.');">
+        <form class="footer-form" onsubmit="event.preventDefault(); this.reset(); window.NutriliftToast && window.NutriliftToast('You\'re on the list — check your inbox.');">
           <input type="email" placeholder="you@email.com" required aria-label="Email">
           <button class="btn btn-primary btn-sm" type="submit">Subscribe</button>
         </form>
@@ -529,6 +530,7 @@
     </div>
   </footer>
 
+  <div class="toast-stack" id="toastStack" aria-live="polite" aria-atomic="true"></div>
   <script src="script.js"></script>
 </body>
 </html>
