@@ -324,6 +324,32 @@ function initTilt3D() {
 function initParallax() { return; }
 function initCursorGlow() { return; }
 
+// — Toast — minimal premium feedback
+function initToasts() {
+  const stack = document.getElementById("toastStack");
+  if (!stack) return;
+  function show(msg) {
+    const el = document.createElement("div");
+    el.className = "toast";
+    el.setAttribute("role", "status");
+    el.textContent = msg;
+    stack.appendChild(el);
+    requestAnimationFrame(() => el.classList.add("show"));
+    setTimeout(() => {
+      el.classList.remove("show");
+      setTimeout(() => el.remove(), 220);
+    }, 2600);
+  }
+  window.NutriliftToast = show;
+  document.addEventListener("click", (e) => {
+    const btn = e.target.closest("[data-toast]");
+    if (!btn) return;
+    const msg = btn.getAttribute("data-toast");
+    if (msg) show(msg);
+  });
+  // inline forms fallback already call window.NutriliftToast directly
+}
+
 // — Programs page: filters + modal —
 const PROGRAM_DATA = {
   fbf: {
@@ -461,5 +487,6 @@ document.addEventListener("DOMContentLoaded", () => {
   initTilt3D();
   initParallax();
   initCursorGlow();
+  initToasts();
   initProgramsPage();
 });
