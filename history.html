@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Nutrilift History — 90 days of lifts, stack, and streaks. Your consistency, visualized.">
+  <meta name="theme-color" content="#C81E3D">
+  <title>History — Nutrilift</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect x='8' y='8' width='16' height='16' fill='%23C81E3D' transform='rotate(45 16 16)'/%3E%3C/svg%3E">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  <script>
+    (function(){try{var s=JSON.parse(localStorage.getItem("nutrilift:v1")||"{}");var t=s.theme||(window.matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light");document.documentElement.setAttribute("data-theme",t);}catch(e){}})();
+  </script>
+</head>
+<body>
+  <a href="#historyGrid" class="skip-link">Skip to content</a>
+  <div class="scene-bg" aria-hidden="true"><div class="scene-grid"></div><div class="orb orb-1"></div></div>
+  <header class="masthead">
+    <div class="masthead-left"><a href="index.html" class="wordmark"><span class="mark"></span>NUTRILIFT<span class="dot">.</span></a></div>
+    <nav class="masthead-center" aria-label="Primary">
+      <a href="index.html#log">Log</a>
+      <a href="index.html#stack">Stack</a>
+      <a href="index.html#week">Week</a>
+      <a href="programs.html">Programs</a>
+      <a href="history.html" class="active">History</a>
+    </nav>
+    <div class="masthead-right">
+      <span class="date-badge mono" id="dateBadge"></span>
+      <span class="streak">STREAK <strong class="mono" id="streakCount">0</strong> DAYS</span>
+      <a href="index.html#log" class="btn btn-sm btn-primary hide-mobile">Open Log</a>
+      <button id="themeToggle" class="mode-switch" aria-pressed="false" aria-label="Switch to dark mode"><span class="switch-track"><span class="switch-thumb"></span></span><span class="switch-label">DARK</span></button>
+    </div>
+  </header>
+
+  <section class="programs-hero">
+    <div class="programs-hero-inner tilt-3d subtle-tilt" data-tilt style="position:relative; overflow:hidden;">
+      <div class="hero-ambient" aria-hidden="true"><div class="hero-glow"></div></div>
+      <div>
+        <span class="mono eyebrow" style="display:inline-block; font-size:10.5px; letter-spacing:0.11em; color:var(--iron-red); border:1px solid var(--iron-red-dim); padding:4px 10px; border-radius:20px; background:var(--iron-red-soft);">90-DAY HISTORY</span>
+        <h1>HISTORY<br><span>— STAY HONEST.</span></h1>
+        <p>Every check you tap lands here. Calendar shows lifts + stack per day, recent logs below. Local only — no cloud.</p>
+        <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:10px;">
+          <button type="button" class="btn btn-primary btn-sm" id="exportBtn">Export CSV</button>
+          <button type="button" class="btn btn-outline btn-sm" id="clearBtn">Clear history</button>
+          <a href="index.html#log" class="btn btn-ghost btn-sm">Back to Today</a>
+        </div>
+      </div>
+      <div style="display:grid; gap:10px;">
+        <div style="background:var(--paper); border:1px solid var(--line); border-radius:12px; padding:14px;">
+          <div class="mono" style="font-size:10px; color:var(--muted); letter-spacing:0.07em;">AT A GLANCE</div>
+          <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px; margin-top:10px; text-align:center;">
+            <div><strong class="mono" id="hStreak" style="font-size:18px;">0</strong><div class="mono" style="font-size:10px; color:var(--muted);">STREAK</div></div>
+            <div><strong class="mono" id="hSessions" style="font-size:18px;">0</strong><div class="mono" style="font-size:10px; color:var(--muted);">SESSIONS</div></div>
+            <div><strong class="mono" id="hAdherence" style="font-size:18px;">0%</strong><div class="mono" style="font-size:10px; color:var(--muted);">ADHERENCE</div></div>
+          </div>
+        </div>
+        <div class="mono" style="background:var(--ink); color:var(--surface); border-radius:10px; padding:10px 12px; font-size:11px; display:flex; gap:6px; align-items:center;"><span style="color:var(--iron-red);">●</span> Tip: tap any day to see detail</div>
+      </div>
+    </div>
+  </section>
+
+  <main id="historyGrid" style="max-width:1180px; margin:18px auto 0; padding:0 clamp(20px,5vw,56px); display:grid; gap:16px;">
+    <section class="panel" style="padding:18px;">
+      <div class="panel-head"><h2>Streak Calendar</h2><span class="mono" style="font-size:11px; color:var(--muted);" id="calendarLegend">○ empty · ◐ partial · ● done</span></div>
+      <div class="history-cal" id="historyCal" aria-label="90 day calendar"></div>
+      <div class="mono" style="font-size:10px; color:var(--muted); margin-top:8px; display:flex; justify-content:space-between;"><span>Oldest →</span><span id="calRange">—</span><span>→ Today</span></div>
+    </section>
+    <div style="display:grid; grid-template-columns:1.25fr 0.85fr; gap:16px;">
+      <section class="panel" style="padding:18px;">
+        <div class="panel-head"><h2>Recent Logs</h2><span class="mono" style="font-size:11px; color:var(--muted);">Last 14 days</span></div>
+        <div id="recentList" style="display:grid; gap:8px;"></div>
+      </section>
+      <section class="panel" style="padding:18px;">
+        <div class="panel-head"><h2>Breakdown</h2><span class="mono" style="font-size:11px; color:var(--muted);" id="breakdownMeta">—</span></div>
+        <div id="breakdown" style="display:grid; gap:10px;"></div>
+        <div id="dayDetail" style="margin-top:12px; padding:10px; background:var(--paper); border:1px dashed var(--line); border-radius:9px; font-size:12px; color:var(--ink-soft); display:none;"></div>
+      </section>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="footer-grid">
+      <div class="footer-brand-col"><span class="footer-brand">NUTRILIFT<span>.</span></span><p>History is local. Clear it anytime — no account needed.</p><div class="footer-social mono"><a href="index.html">Home</a><a href="programs.html">Programs</a><a href="history.html">History</a></div></div>
+      <div class="footer-col"><span class="mono footer-title">Product</span><a href="index.html#log">Today's Log</a><a href="history.html">History</a><a href="programs.html">Programs</a></div>
+      <div class="footer-col"><span class="mono footer-title">Data</span><a href="#" id="footerExport">Export CSV</a><a href="#" id="footerClear">Clear history</a></div>
+      <div class="footer-col"><span class="mono footer-title">Info</span><p class="mono footer-note">90-day rolling window. Saved in your browser.</p></div>
+    </div>
+    <div class="footer-bottom mono"><span>© 2026 Nutrilift · History is proof.</span><span>CONSISTENCY &gt; INTENSITY</span></div>
+  </footer>
+
+  <div class="toast-stack" id="toastStack" aria-live="polite" aria-atomic="true"></div>
+  <script src="script.js"></script>
+</body>
+</html>
