@@ -350,6 +350,30 @@ function initToasts() {
   // inline forms fallback already call window.NutriliftToast directly
 }
 
+// — History page — 90d calendar + export (small, <35 lines logic) —
+function initHistoryPage(){
+  const cal=document.getElementById("historyCal"); if(!cal) return;
+  const data=loadStorage(); const days=data.days||{};
+  const fmt=k=>k.slice(5).replace("-","/"); const today=new Date();
+  let streak=computeStreak(data), total=Object.keys(days).length;
+  let taken=0, possible=0; Object.values(days).forEach(d=>{ if(d.stack){ taken+=d.stack.filter(Boolean).length; possible+=d.stack.length; }});
+  let adh=possible?Math.round(taken/possible*100):0;
+  const set=(id,v)=>{const e=document.getElementById(id); if(e) e.textContent=v;};
+  set("hStreak",streak); set("hSessions",total); set("hAdherence",adh+"%");
+  set("breakdownMeta", total+" sessions · "+adh+"% adherence");
+  // calendar 90 days
+  const cells=[]; for(let i=89;i>=0;i--){ const d=new Date(today); d.setDate(today.getDate()-i); const k=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`; const v=days[k]; let cls=""; if(v){ const l=v.lifts?.some(Boolean), s=v.stack?.some(Boolean); if(l&&s) cls="done"; else if(l||s) cls="partial"; } if(k===todayKey()) cls+=(cls?" ":"")+"today"; cells.push({k,cls,v}); }
+  cal.innerHTML=cells.map(c=>`<button type="button" class="cal-day ${c.cls}" data-k="${c.k}" aria-label="${c.k}">${c.k.slice(8)}</button>`).join("");
+  const r=document.getElementById("calRange"); if(r) r.textContent=fmt(cells[0].k)+" — "+fmt(cells[cells.length-1].k);
+  const recent=document.getElementById("recentList"); if(recent){ const last=cells.slice(-14).reverse().filter(c=>c.v); recent.innerHTML=last.length?last.map(c=>`<div class="recent-row ${c.cls.includes("done")?"done":""}"><span class="mono">${c.k}</span><span class="mono">${(c.v.lifts?.filter(Boolean).length||0)}/5 lifts · ${(c.v.stack?.filter(Boolean).length||0)}/5 stack</span></div>`).join(""):`<div class="mono" style="font-size:12px; color:var(--muted);">No logs yet — check a lift on the dashboard.</div>`; }
+  const breakdown=document.getElementById("breakdown"); if(breakdown){ breakdown.innerHTML=`<div class="recent-row"><span>Lifts logged</span><span class="mono">${Object.values(days).reduce((a,d)=>a+(d.lifts?.filter(Boolean).length||0),0)}</span></div><div class="recent-row"><span>Stack taken</span><span class="mono">${taken}/${possible}</span></div><div class="recent-row"><span>Best streak</span><span class="mono">${streak} days</span></div>`; }
+  const detail=document.getElementById("dayDetail"); cal.addEventListener("click",e=>{ const b=e.target.closest(".cal-day"); if(!b||!detail) return; const k=b.dataset.k; const v=days[k]; detail.style.display="block"; detail.textContent=v?`${k}: ${(v.lifts?.filter(Boolean).length||0)} lifts, ${(v.stack?.filter(Boolean).length||0)} stack`:`${k}: no data`; });
+  const doExport=()=>{ const rows=[["date","lifts_done","stack_done"]]; Object.keys(days).sort().forEach(k=>{ const d=days[k]; rows.push([k, (d.lifts?.filter(Boolean).length||0), (d.stack?.filter(Boolean).length||0)]); }); const csv=rows.map(r=>r.join(",")).join("\n"); const blob=new Blob([csv],{type:"text/csv"}); const a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download="nutrilift-history.csv"; a.click(); window.NutriliftToast&&window.NutriliftToast("CSV downloaded"); };
+  const doClear=()=>{ if(!confirm("Clear 90-day history?")) return; data.days={}; saveStorage(data); location.reload(); };
+  ["exportBtn","footerExport"].forEach(id=>{ const e=document.getElementById(id); if(e) e.addEventListener("click",e=>{e.preventDefault(); doExport();}); });
+  ["clearBtn","footerClear"].forEach(id=>{ const e=document.getElementById(id); if(e) e.addEventListener("click",e=>{e.preventDefault(); doClear();}); });
+}
+
 // — Programs page: filters + modal —
 const PROGRAM_DATA = {
   fbf: {
@@ -489,4 +513,5 @@ document.addEventListener("DOMContentLoaded", () => {
   initCursorGlow();
   initToasts();
   initProgramsPage();
+  initHistoryPage();
 });
