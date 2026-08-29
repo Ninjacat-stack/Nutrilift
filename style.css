@@ -888,6 +888,18 @@ html[data-theme="dark"] .cta-inner .btn-ghost:hover { background: var(--paper); 
 .modal-table td { padding: 7px; border-bottom: 1px solid var(--line); }
 .modal-table td:last-child { text-align: center; }
 
+/* History — 90d calendar (small page, ~40 lines) */
+.history-cal { display: grid; grid-template-columns: repeat(15, 1fr); gap: 6px; }
+@media(max-width:860px){ .history-cal{ grid-template-columns: repeat(10, 1fr);} }
+@media(max-width:480px){ .history-cal{ grid-template-columns: repeat(7, 1fr);} }
+.cal-day { aspect-ratio: 1; border-radius: 7px; border: 1px solid var(--line); display:grid; place-items:center; font-family:var(--font-mono); font-size:9px; color:var(--muted); background:var(--surface); cursor:pointer; transition: transform 0.12s ease, border-color 0.12s ease; }
+.cal-day:hover{ transform: translateY(-1px); border-color:var(--muted); }
+.cal-day.done{ background:var(--iron-red); color:#fff; border-color:var(--iron-red); box-shadow:0 2px 6px var(--iron-red-glow); }
+.cal-day.partial{ background:var(--iron-red-soft); border-color:var(--iron-red-dim); color:var(--iron-red); }
+.cal-day.today{ outline:2px solid var(--iron-red); outline-offset:1px; }
+.recent-row{ display:flex; justify-content:space-between; align-items:center; padding:9px 10px; border:1px solid var(--line); border-radius:9px; background:var(--surface); font-size:12.5px; }
+.recent-row.done{ border-color:var(--iron-red-dim); background:var(--iron-red-soft); }
+
 /* Reveal — subtle only */
 .reveal { opacity: 0; transform: translateY(10px); transition: opacity 0.45s ease, transform 0.45s ease; }
 .reveal.in { opacity: 1; transform: none; }
