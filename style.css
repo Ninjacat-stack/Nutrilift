@@ -53,6 +53,10 @@ html[data-theme="dark"] {
 html { scroll-behavior: smooth; scroll-padding-top: 84px; }
 * { box-sizing: border-box; }
 ::selection { background: var(--iron-red); color: #fff; }
+*::-webkit-scrollbar{ width:8px; height:8px; }
+*::-webkit-scrollbar-thumb{ background: var(--line); border-radius:8px; border:2px solid var(--paper); }
+*::-webkit-scrollbar-thumb:hover{ background: var(--muted); }
+html{ scrollbar-width: thin; scrollbar-color: var(--line) var(--paper); }
 
 body {
   margin: 0;
@@ -924,6 +928,8 @@ html[data-theme="dark"] .cta-inner .btn-ghost:hover { background: var(--paper); 
 }
 .skip-link:focus { left: 12px; }
 
+/* Kbd hint */
+kbd{ font-family:var(--font-mono); font-size:10px; background:var(--paper); border:1px solid var(--line); border-bottom-width:2px; padding:1px 5px; border-radius:4px; color:var(--muted); }
 /* Toast — minimal, premium */
 .toast-stack {
   position: fixed; bottom: 18px; right: 18px; z-index: 3000;

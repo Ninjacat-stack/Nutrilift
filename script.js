@@ -320,6 +320,14 @@ function initTilt3D() {
   });
 }
 
+// — Shortcuts — t: theme, ?: help
+function initShortcuts(){
+  document.addEventListener("keydown", e=>{
+    if(e.target.matches("input, textarea")) return;
+    if(e.key==="t"||e.key==="T"){ e.preventDefault(); document.getElementById("themeToggle")?.click(); }
+    if(e.key==="?"||(e.key==="/"&&e.shiftKey)){ e.preventDefault(); window.NutriliftToast&&window.NutriliftToast("Shortcuts: t → theme · ? → help · Esc → close modal"); }
+  });
+}
 // — Parallax & cursor glow disabled for clean premium feel — kept as no-ops for compat
 function initParallax() { return; }
 function initCursorGlow() { return; }
@@ -512,6 +520,7 @@ document.addEventListener("DOMContentLoaded", () => {
   initParallax();
   initCursorGlow();
   initToasts();
+  initShortcuts();
   initProgramsPage();
   initHistoryPage();
 });
