@@ -259,6 +259,52 @@ function loadPersistedState() {
   }
 }
 
+// — Fuel — persisted per day in localStorage days[date].fuel —
+// Targets 165P/240C/70F/2200kcal; auto-estimates kcal if empty; caps at sane max
+const FUEL_TARGETS = { protein:165, carbs:240, fats:70, kcal:2200 };
+function getFuelToday(){
+  const d=loadStorage().days?.[todayKey()]?.fuel;
+  return d || { protein:90, carbs:150, fats:38, kcal:1300 };
+}
+function saveFuelToday(fuel){
+  const data=loadStorage(); const k=todayKey();
+  if(!data.days) data.days={}; if(!data.days[k]) data.days[k]={ lifts:[], stack:[] };
+  data.days[k].fuel=fuel; pruneOldDays(data); saveStorage(data);
+}
+function updateFuelUI(fuel){
+  const t=FUEL_TARGETS;
+  const pct=(v, target)=> Math.min(100, Math.round(v/target*100));
+  const set=(id, val, target, unit)=>{ const txt=document.getElementById(id); if(txt) txt.textContent=`${val} / ${target} ${unit}`; };
+  const bar=(id, val, target)=>{ const el=document.getElementById(id); if(!el) return; const p=pct(val,target); el.parentElement.parentElement.style.setProperty("--pct", p); el.parentElement.parentElement.classList.toggle("over", val>=target); };
+  set("proteinText", fuel.protein, t.protein, "g"); bar("proteinFill", fuel.protein, t.protein);
+  set("carbsText", fuel.carbs, t.carbs, "g"); bar("carbsFill", fuel.carbs, t.carbs);
+  set("fatsText", fuel.fats, t.fats, "g"); bar("fatsFill", fuel.fats, t.fats);
+  set("kcalText", fuel.kcal, t.kcal, "kcal"); bar("kcalFill", fuel.kcal, t.kcal);
+  const head=document.getElementById("fuelKcalHead"); if(head) head.textContent=`${fuel.kcal} / ${t.kcal} kcal`;
+}
+function initFuel(){
+  const panel=document.getElementById("fuelPanel"); if(!panel) return;
+  const form=document.getElementById("mealForm"), addBtn=document.getElementById("addMealBtn"), cancelBtn=document.getElementById("cancelMealBtn"), resetBtn=document.getElementById("resetFuelBtn");
+  if(!form||!addBtn) return;
+  updateFuelUI(getFuelToday());
+  addBtn.addEventListener("click",()=>{ form.hidden=!form.hidden; if(!form.hidden) document.getElementById("mProtein")?.focus(); });
+  cancelBtn?.addEventListener("click",()=>{ form.hidden=true; form.reset(); });
+  resetBtn?.addEventListener("click",()=>{ saveFuelToday({protein:0,carbs:0,fats:0,kcal:0}); updateFuelUI(getFuelToday()); window.NutriliftToast&&window.NutriliftToast("Fuel reset for today"); });
+  const presets={ whey:{p:25,c:3,f:2,k:130}, meal:{p:35,c:45,f:15,k:455}, snack:{p:10,c:20,f:8,k:190} };
+  form.querySelectorAll("[data-preset]").forEach(b=> b.addEventListener("click",()=>{ const pr=presets[b.dataset.preset]; if(!pr) return; document.getElementById("mProtein").value=pr.p; document.getElementById("mCarbs").value=pr.c; document.getElementById("mFats").value=pr.f; document.getElementById("mKcal").value=pr.k; }));
+  form.addEventListener("submit",e=>{
+    e.preventDefault();
+    let p=parseInt(document.getElementById("mProtein").value)||0, c=parseInt(document.getElementById("mCarbs").value)||0, f=parseInt(document.getElementById("mFats").value)||0, k=parseInt(document.getElementById("mKcal").value)||0;
+    if(!p&&!c&&!f&&!k){ window.NutriliftToast&&window.NutriliftToast("Enter at least one value"); return; }
+    if(!k && (p||c||f)) k = p*4 + c*4 + f*9; // auto-estimate kcal if empty
+    const cur=getFuelToday(); const next={ protein:Math.min(600,cur.protein+p), carbs:Math.min(800,cur.carbs+c), fats:Math.min(300,cur.fats+f), kcal:Math.min(6000,cur.kcal+k) };
+    saveFuelToday(next); updateFuelUI(next); form.reset(); form.hidden=true;
+    window.NutriliftToast&&window.NutriliftToast(`+${p}P · +${c}C · +${f}F · +${k} kcal saved`);
+  });
+  // also persist fuel to history export
+  const origExport = window.NutriliftToast; // keep ref for later use
+}
+
 // — Reveal — clean fade + slight rise only
 function initReveal() {
   const prefersReduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -374,9 +420,12 @@ function initHistoryPage(){
   cal.innerHTML=cells.map(c=>`<button type="button" class="cal-day ${c.cls}" data-k="${c.k}" aria-label="${c.k}">${c.k.slice(8)}</button>`).join("");
   const r=document.getElementById("calRange"); if(r) r.textContent=fmt(cells[0].k)+" — "+fmt(cells[cells.length-1].k);
   const recent=document.getElementById("recentList"); if(recent){ const last=cells.slice(-14).reverse().filter(c=>c.v); recent.innerHTML=last.length?last.map(c=>`<div class="recent-row ${c.cls.includes("done")?"done":""}"><span class="mono">${c.k}</span><span class="mono">${(c.v.lifts?.filter(Boolean).length||0)}/5 lifts · ${(c.v.stack?.filter(Boolean).length||0)}/5 stack</span></div>`).join(""):`<div class="mono" style="font-size:12px; color:var(--muted);">No logs yet — check a lift on the dashboard.</div>`; }
-  const breakdown=document.getElementById("breakdown"); if(breakdown){ breakdown.innerHTML=`<div class="recent-row"><span>Lifts logged</span><span class="mono">${Object.values(days).reduce((a,d)=>a+(d.lifts?.filter(Boolean).length||0),0)}</span></div><div class="recent-row"><span>Stack taken</span><span class="mono">${taken}/${possible}</span></div><div class="recent-row"><span>Best streak</span><span class="mono">${streak} days</span></div>`; }
-  const detail=document.getElementById("dayDetail"); cal.addEventListener("click",e=>{ const b=e.target.closest(".cal-day"); if(!b||!detail) return; const k=b.dataset.k; const v=days[k]; detail.style.display="block"; detail.textContent=v?`${k}: ${(v.lifts?.filter(Boolean).length||0)} lifts, ${(v.stack?.filter(Boolean).length||0)} stack`:`${k}: no data`; });
-  const doExport=()=>{ const rows=[["date","lifts_done","stack_done"]]; Object.keys(days).sort().forEach(k=>{ const d=days[k]; rows.push([k, (d.lifts?.filter(Boolean).length||0), (d.stack?.filter(Boolean).length||0)]); }); const csv=rows.map(r=>r.join(",")).join("\n"); const blob=new Blob([csv],{type:"text/csv"}); const a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download="nutrilift-history.csv"; a.click(); window.NutriliftToast&&window.NutriliftToast("CSV downloaded"); };
+  const breakdown=document.getElementById("breakdown"); if(breakdown){
+    const fuelDays=Object.values(days).filter(d=>d.fuel); const avgKcal=fuelDays.length?Math.round(fuelDays.reduce((a,d)=>a+(d.fuel.kcal||0),0)/fuelDays.length):0;
+    breakdown.innerHTML=`<div class="recent-row"><span>Lifts logged</span><span class="mono">${Object.values(days).reduce((a,d)=>a+(d.lifts?.filter(Boolean).length||0),0)}</span></div><div class="recent-row"><span>Stack taken</span><span class="mono">${taken}/${possible}</span></div><div class="recent-row"><span>Avg kcal</span><span class="mono">${avgKcal} kcal</span></div><div class="recent-row"><span>Best streak</span><span class="mono">${streak} days</span></div>`;
+  }
+  const detail=document.getElementById("dayDetail"); cal.addEventListener("click",e=>{ const b=e.target.closest(".cal-day"); if(!b||!detail) return; const k=b.dataset.k; const v=days[k]; const f=v?.fuel; detail.style.display="block"; detail.innerHTML=v?`<strong class="mono">${k}</strong> — ${(v.lifts?.filter(Boolean).length||0)} lifts · ${(v.stack?.filter(Boolean).length||0)} stack${f?` · ${f.kcal} kcal (${f.protein}P ${f.carbs}C ${f.fats}F)`:""}`:`<span class="mono">${k}: no data</span>`; });
+  const doExport=()=>{ const rows=[["date","lifts_done","stack_done","protein","carbs","fats","kcal"]]; Object.keys(days).sort().forEach(k=>{ const d=days[k]; const f=d.fuel||{protein:0,carbs:0,fats:0,kcal:0}; rows.push([k, (d.lifts?.filter(Boolean).length||0), (d.stack?.filter(Boolean).length||0), f.protein, f.carbs, f.fats, f.kcal]); }); const csv=rows.map(r=>r.join(",")).join("\n"); const blob=new Blob([csv],{type:"text/csv"}); const a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download="nutrilift-history.csv"; a.click(); window.NutriliftToast&&window.NutriliftToast("CSV with fuel downloaded"); };
   const doClear=()=>{ if(!confirm("Clear 90-day history?")) return; data.days={}; saveStorage(data); location.reload(); };
   ["exportBtn","footerExport"].forEach(id=>{ const e=document.getElementById(id); if(e) e.addEventListener("click",e=>{e.preventDefault(); doExport();}); });
   ["clearBtn","footerClear"].forEach(id=>{ const e=document.getElementById(id); if(e) e.addEventListener("click",e=>{e.preventDefault(); doClear();}); });
@@ -515,6 +564,7 @@ document.addEventListener("DOMContentLoaded", () => {
   initCheckButtons();
   initStackAdherence();
   loadPersistedState();
+  initFuel();
   initReveal();
   initTilt3D();
   initParallax();
