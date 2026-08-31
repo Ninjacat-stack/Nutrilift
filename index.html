@@ -272,33 +272,54 @@
     </section>
 
     <div class="grid">
-      <section class="panel nutrition-panel">
+      <section class="panel nutrition-panel" id="fuelPanel" aria-label="Fuel Today">
         <div class="panel-head">
           <h2>Fuel Today</h2>
-          <span class="adherence mono">1300 / 2200 kcal</span>
+          <span class="adherence mono" id="fuelKcalHead">1300 / 2200 kcal</span>
         </div>
-        <div class="macro-list">
-          <div class="macro" style="--pct:55">
-            <div class="macro-top"><span>PROTEIN</span><span class="macro-nums mono">90 / 165 g</span></div>
-            <div class="macro-bar"><span class="macro-fill"></span></div>
+        <div class="macro-list" id="macroList">
+          <div class="macro" data-macro="protein" style="--pct:55">
+            <div class="macro-top"><span>PROTEIN</span><span class="macro-nums mono" id="proteinText">90 / 165 g</span></div>
+            <div class="macro-bar"><span class="macro-fill" id="proteinFill"></span></div>
           </div>
-          <div class="macro" style="--pct:42">
-            <div class="macro-top"><span>CARBS</span><span class="macro-nums mono">150 / 240 g</span></div>
-            <div class="macro-bar"><span class="macro-fill"></span></div>
+          <div class="macro" data-macro="carbs" style="--pct:42">
+            <div class="macro-top"><span>CARBS</span><span class="macro-nums mono" id="carbsText">150 / 240 g</span></div>
+            <div class="macro-bar"><span class="macro-fill" id="carbsFill"></span></div>
           </div>
-          <div class="macro" style="--pct:58">
-            <div class="macro-top"><span>FATS</span><span class="macro-nums mono">38 / 70 g</span></div>
-            <div class="macro-bar"><span class="macro-fill"></span></div>
+          <div class="macro" data-macro="fats" style="--pct:58">
+            <div class="macro-top"><span>FATS</span><span class="macro-nums mono" id="fatsText">38 / 70 g</span></div>
+            <div class="macro-bar"><span class="macro-fill" id="fatsFill"></span></div>
           </div>
-          <div class="macro" style="--pct:60">
-            <div class="macro-top"><span>CALORIES</span><span class="macro-nums mono">1300 / 2200 kcal</span></div>
-            <div class="macro-bar"><span class="macro-fill"></span></div>
+          <div class="macro" data-macro="kcal" style="--pct:60">
+            <div class="macro-top"><span>CALORIES</span><span class="macro-nums mono" id="kcalText">1300 / 2200 kcal</span></div>
+            <div class="macro-bar"><span class="macro-fill" id="kcalFill"></span></div>
           </div>
         </div>
         <div class="macro-actions">
-          <button type="button" class="btn btn-sm btn-outline" data-toast="Meal logger — connect your nutrition app soon">+ Add Meal</button>
+          <button type="button" class="btn btn-sm btn-outline" id="addMealBtn">+ Add Meal</button>
+          <button type="button" class="btn btn-sm btn-ghost" id="resetFuelBtn" title="Reset today">Reset</button>
           <span class="mono macro-hint">Target: 165P · 240C · 70F</span>
         </div>
+        <form id="mealForm" hidden style="margin-top:12px; display:grid; gap:8px; background:var(--paper); border:1px solid var(--line); border-radius:9px; padding:10px;">
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
+            <label class="mono" style="font-size:10px; color:var(--muted);">Protein g<input type="number" id="mProtein" min="0" max="300" placeholder="25" style="width:100%; margin-top:4px; padding:7px 8px; border:1px solid var(--line); border-radius:7px; background:var(--surface);"></label>
+            <label class="mono" style="font-size:10px; color:var(--muted);">Carbs g<input type="number" id="mCarbs" min="0" max="500" placeholder="40" style="width:100%; margin-top:4px; padding:7px 8px; border:1px solid var(--line); border-radius:7px; background:var(--surface);"></label>
+            <label class="mono" style="font-size:10px; color:var(--muted);">Fats g<input type="number" id="mFats" min="0" max="200" placeholder="12" style="width:100%; margin-top:4px; padding:7px 8px; border:1px solid var(--line); border-radius:7px; background:var(--surface);"></label>
+            <label class="mono" style="font-size:10px; color:var(--muted);">Kcal<input type="number" id="mKcal" min="0" max="3000" placeholder="350" style="width:100%; margin-top:4px; padding:7px 8px; border:1px solid var(--line); border-radius:7px; background:var(--surface);"></label>
+          </div>
+          <div class="mono" style="font-size:10px; color:var(--muted);">Quick presets:</div>
+          <div style="display:flex; gap:6px; flex-wrap:wrap;">
+            <button type="button" class="btn btn-sm btn-ghost" data-preset="whey" style="font-size:11px;">Whey 25P 3C 2F 130kcal</button>
+            <button type="button" class="btn btn-sm btn-ghost" data-preset="meal" style="font-size:11px;">Meal 35P 45C 15F 455kcal</button>
+            <button type="button" class="btn btn-sm btn-ghost" data-preset="snack" style="font-size:11px;">Snack 10P 20C 8F 190kcal</button>
+          </div>
+          <div style="display:flex; gap:8px;">
+            <button type="submit" class="btn btn-primary btn-sm" style="flex:1;">Save meal</button>
+            <button type="button" class="btn btn-ghost btn-sm" id="cancelMealBtn">Cancel</button>
+          </div>
+          <span class="mono" style="font-size:10px; color:var(--muted);">Saved to localStorage · persists per day</span>
+        </form>
+        <div class="mono" style="font-size:10px; color:var(--muted); margin-top:6px; text-align:center; opacity:0.8;">Stored in <code>nutrilift:v1</code> → <code>days[YYYY-MM-DD].fuel</code></div>
       </section>
 
       <section class="panel pr-panel">

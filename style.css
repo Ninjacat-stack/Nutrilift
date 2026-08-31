@@ -807,6 +807,16 @@ html[data-theme="dark"] .cta-inner .btn-ghost:hover { background: var(--paper); 
   font-size: 10.5px; color: var(--muted); letter-spacing: 0.05em; text-transform: uppercase;
 }
 
+/* Fuel form — hidden handling */
+#mealForm[hidden]{ display:none !important; }
+#mealForm{ animation: fuelIn 0.18s ease; }
+@keyframes fuelIn{ from{ opacity:0; transform:translateY(4px);} to{ opacity:1; transform:none;} }
+#mealForm input:focus{ border-color:var(--iron-red); box-shadow:0 0 0 3px var(--iron-red-glow); outline:none; }
+#mealForm input:invalid{ border-color:var(--iron-red); }
+/* Fuel over-target pulse */
+.macro.over .macro-fill{ background: linear-gradient(90deg, var(--iron-red) 0%, #ff6b35 100%); }
+.macro.over .macro-nums{ color: var(--iron-red); }
+.cal-day:focus-visible{ outline:2px solid var(--iron-red); outline-offset:2px; }
 /* Programs page */
 .programs-hero { max-width: 1180px; margin: 28px auto 0; padding: 0 clamp(20px, 5vw, 56px); }
 .programs-hero-inner {
