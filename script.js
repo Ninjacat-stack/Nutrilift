@@ -259,6 +259,35 @@ function loadPersistedState() {
   }
 }
 
+// — Editable Lifts — persists exercises + per-day dones in localStorage —
+const DEFAULT_EXERCISES = [
+  {name:"Barbell Bench Press",sets:"4 × 6",load:"80 kg"},
+  {name:"Incline Dumbbell Press",sets:"3 × 10",load:"28 kg"},
+  {name:"Weighted Dips",sets:"3 × 8",load:"+15 kg"},
+  {name:"Cable Lateral Raise",sets:"4 × 15",load:"10 kg"},
+  {name:"Overhead Triceps Extension",sets:"3 × 12",load:"22 kg"}
+];
+function loadExercises(){ const d=loadStorage(); return d.exercises || DEFAULT_EXERCISES; }
+function saveExercises(exs){ const d=loadStorage(); d.exercises=exs; saveStorage(d); }
+function collectExercises(){ return Array.from(document.querySelectorAll("#logSheet tbody tr")).map(tr=>({name:tr.querySelector('[data-field="name"]')?.textContent.trim()||"",sets:tr.querySelector('[data-field="sets"]')?.textContent.trim()||"",load:tr.querySelector('[data-field="load"]')?.textContent.trim()||""})); }
+function reindexLog(){ document.querySelectorAll("#logSheet tbody tr").forEach((tr,i)=>{ const idx=tr.querySelector(".idx"); if(idx) idx.textContent=String(i+1).padStart(2,"0"); const btn=tr.querySelector(".check-btn"); if(btn) btn.setAttribute("aria-label",`Mark ${tr.querySelector('[data-field="name"]')?.textContent.trim()} complete`); }); }
+function initEditableLog(){
+  const tbody=document.querySelector("#logSheet tbody"), addBtn=document.getElementById("addLiftBtn"), resetBtn=document.getElementById("resetLiftsBtn");
+  if(!tbody) return;
+  // hydrate from stored exercises if differs from default
+  const stored=loadExercises(); if(stored.length!==5 || stored.some((e,i)=> e.name!==DEFAULT_EXERCISES[i]?.name || e.sets!==DEFAULT_EXERCISES[i]?.sets || e.load!==DEFAULT_EXERCISES[i]?.load)){
+    // rebuild to match stored (keep dones if possible)
+    const data=loadStorage(); const today=data.days?.[todayKey()]; const dones=today?.lifts||[];
+    tbody.innerHTML=stored.map((ex,i)=>`<tr data-done="${dones[i]?"true":"false"}"><td class="idx mono">${String(i+1).padStart(2,"0")}</td><td contenteditable="true" data-field="name" spellcheck="false">${ex.name}</td><td class="mono" contenteditable="true" data-field="sets" spellcheck="false">${ex.sets}</td><td class="mono" contenteditable="true" data-field="load" spellcheck="false">${ex.load}</td><td class="th-check" style="display:flex; gap:6px; justify-content:center; align-items:center;"><button type="button" class="check-btn" aria-pressed="${dones[i]?"true":"false"}" aria-label="Mark ${ex.name} complete"></button><button type="button" class="del-lift" aria-label="Delete exercise" title="Delete">×</button></td></tr>`).join("");
+    initBarbellProgress();
+  }
+  tbody.addEventListener("focusout", e=>{ if(e.target.matches('[data-field]')){ saveExercises(collectExercises()); reindexLog(); }});
+  tbody.addEventListener("keydown", e=>{ if(e.target.matches('[data-field]') && e.key==="Enter"){ e.preventDefault(); e.target.blur(); }});
+  tbody.addEventListener("click", e=>{ const del=e.target.closest(".del-lift"); if(!del) return; const tr=del.closest("tr"); tr.remove(); saveExercises(collectExercises()); reindexLog(); initBarbellProgress(); persistCurrentState(); window.NutriliftToast&&window.NutriliftToast("Exercise removed"); });
+  addBtn?.addEventListener("click",()=>{ const tr=document.createElement("tr"); tr.setAttribute("data-done","false"); const n=tbody.children.length+1; tr.innerHTML=`<td class="idx mono">${String(n).padStart(2,"0")}</td><td contenteditable="true" data-field="name" spellcheck="false">New Exercise</td><td class="mono" contenteditable="true" data-field="sets" spellcheck="false">3 × 10</td><td class="mono" contenteditable="true" data-field="load" spellcheck="false">20 kg</td><td class="th-check" style="display:flex; gap:6px; justify-content:center; align-items:center;"><button type="button" class="check-btn" aria-pressed="false" aria-label="Mark New Exercise complete"></button><button type="button" class="del-lift" aria-label="Delete exercise" title="Delete">×</button></td>`; tbody.appendChild(tr); saveExercises(collectExercises()); initBarbellProgress(); persistCurrentState(); tr.querySelector('[data-field="name"]').focus(); });
+  resetBtn?.addEventListener("click",()=>{ if(!confirm("Reset to Push Day default?")) return; saveExercises(DEFAULT_EXERCISES); location.reload(); });
+}
+
 // — Fuel — persisted per day in localStorage days[date].fuel —
 // Targets 165P/240C/70F/2200kcal; auto-estimates kcal if empty; caps at sane max
 const FUEL_TARGETS = { protein:165, carbs:240, fats:70, kcal:2200 };
@@ -560,6 +589,7 @@ document.addEventListener("DOMContentLoaded", () => {
   initThemeToggle();
   initHeaderShrink();
   initDateAndStreak();
+  initEditableLog();
   initBarbellProgress();
   initCheckButtons();
   initStackAdherence();

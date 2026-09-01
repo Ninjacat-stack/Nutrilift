@@ -165,41 +165,46 @@
           <tbody>
             <tr data-done="true">
               <td class="idx mono">01</td>
-              <td>Barbell Bench Press</td>
-              <td class="mono">4 × 6</td>
-              <td class="mono">80 kg</td>
-              <td class="th-check"><button type="button" class="check-btn" aria-pressed="true" aria-label="Mark Barbell Bench Press complete"></button></td>
+              <td contenteditable="true" data-field="name" spellcheck="false">Barbell Bench Press</td>
+              <td class="mono" contenteditable="true" data-field="sets" spellcheck="false">4 × 6</td>
+              <td class="mono" contenteditable="true" data-field="load" spellcheck="false">80 kg</td>
+              <td class="th-check" style="display:flex; gap:6px; justify-content:center; align-items:center;"><button type="button" class="check-btn" aria-pressed="true" aria-label="Mark Barbell Bench Press complete"></button><button type="button" class="del-lift" aria-label="Delete exercise" title="Delete">×</button></td>
             </tr>
             <tr data-done="true">
               <td class="idx mono">02</td>
-              <td>Incline Dumbbell Press</td>
-              <td class="mono">3 × 10</td>
-              <td class="mono">28 kg</td>
-              <td class="th-check"><button type="button" class="check-btn" aria-pressed="true" aria-label="Mark Incline Dumbbell Press complete"></button></td>
+              <td contenteditable="true" data-field="name" spellcheck="false">Incline Dumbbell Press</td>
+              <td class="mono" contenteditable="true" data-field="sets" spellcheck="false">3 × 10</td>
+              <td class="mono" contenteditable="true" data-field="load" spellcheck="false">28 kg</td>
+              <td class="th-check" style="display:flex; gap:6px; justify-content:center; align-items:center;"><button type="button" class="check-btn" aria-pressed="true" aria-label="Mark Incline Dumbbell Press complete"></button><button type="button" class="del-lift" aria-label="Delete exercise" title="Delete">×</button></td>
             </tr>
             <tr data-done="false">
               <td class="idx mono">03</td>
-              <td>Weighted Dips</td>
-              <td class="mono">3 × 8</td>
-              <td class="mono">+15 kg</td>
-              <td class="th-check"><button type="button" class="check-btn" aria-pressed="false" aria-label="Mark Weighted Dips complete"></button></td>
+              <td contenteditable="true" data-field="name" spellcheck="false">Weighted Dips</td>
+              <td class="mono" contenteditable="true" data-field="sets" spellcheck="false">3 × 8</td>
+              <td class="mono" contenteditable="true" data-field="load" spellcheck="false">+15 kg</td>
+              <td class="th-check" style="display:flex; gap:6px; justify-content:center; align-items:center;"><button type="button" class="check-btn" aria-pressed="false" aria-label="Mark Weighted Dips complete"></button><button type="button" class="del-lift" aria-label="Delete exercise" title="Delete">×</button></td>
             </tr>
             <tr data-done="false">
               <td class="idx mono">04</td>
-              <td>Cable Lateral Raise</td>
-              <td class="mono">4 × 15</td>
-              <td class="mono">10 kg</td>
-              <td class="th-check"><button type="button" class="check-btn" aria-pressed="false" aria-label="Mark Cable Lateral Raise complete"></button></td>
+              <td contenteditable="true" data-field="name" spellcheck="false">Cable Lateral Raise</td>
+              <td class="mono" contenteditable="true" data-field="sets" spellcheck="false">4 × 15</td>
+              <td class="mono" contenteditable="true" data-field="load" spellcheck="false">10 kg</td>
+              <td class="th-check" style="display:flex; gap:6px; justify-content:center; align-items:center;"><button type="button" class="check-btn" aria-pressed="false" aria-label="Mark Cable Lateral Raise complete"></button><button type="button" class="del-lift" aria-label="Delete exercise" title="Delete">×</button></td>
             </tr>
             <tr data-done="false">
               <td class="idx mono">05</td>
-              <td>Overhead Triceps Extension</td>
-              <td class="mono">3 × 12</td>
-              <td class="mono">22 kg</td>
-              <td class="th-check"><button type="button" class="check-btn" aria-pressed="false" aria-label="Mark Overhead Triceps Extension complete"></button></td>
+              <td contenteditable="true" data-field="name" spellcheck="false">Overhead Triceps Extension</td>
+              <td class="mono" contenteditable="true" data-field="sets" spellcheck="false">3 × 12</td>
+              <td class="mono" contenteditable="true" data-field="load" spellcheck="false">22 kg</td>
+              <td class="th-check" style="display:flex; gap:6px; justify-content:center; align-items:center;"><button type="button" class="check-btn" aria-pressed="false" aria-label="Mark Overhead Triceps Extension complete"></button><button type="button" class="del-lift" aria-label="Delete exercise" title="Delete">×</button></td>
             </tr>
           </tbody>
         </table>
+        <div style="display:flex; gap:8px; margin-top:10px; flex-wrap:wrap;">
+          <button type="button" class="btn btn-sm btn-outline" id="addLiftBtn">+ Add Exercise</button>
+          <button type="button" class="btn btn-sm btn-ghost" id="resetLiftsBtn">Reset Push Day</button>
+          <span class="mono" style="font-size:10px; color:var(--muted); align-self:center;">Click text to edit · saved locally</span>
+        </div>
         <div class="panel-foot mono">
           <span>Next up: Pull Day · Deadlifts</span><a href="programs.html">Swap program →</a>
         </div>

@@ -559,6 +559,11 @@ main.content {
 .log-sheet .idx, .pr-sheet .idx { color: var(--muted); font-size: 11.5px; }
 .pr-sheet td:first-child { font-weight: 500; }
 .log-sheet tr[data-done="true"] td:nth-child(2) { color: var(--ink-soft); text-decoration: line-through; text-decoration-color: var(--iron-red-dim); text-decoration-thickness: 1.5px; }
+.log-sheet td[contenteditable="true"]{ outline:none; border-radius:4px; }
+.log-sheet td[contenteditable="true"]:focus{ background:var(--paper); box-shadow:0 0 0 2px var(--iron-red-glow); }
+.log-sheet td[contenteditable="true"]:hover{ background:var(--hover); }
+.del-lift{ width:20px; height:20px; border-radius:50%; border:1px solid var(--line); background:var(--surface); color:var(--muted); cursor:pointer; font-size:12px; line-height:1; display:grid; place-items:center; }
+.del-lift:hover{ border-color:var(--iron-red); color:var(--iron-red); background:var(--iron-red-soft); }
 .check-btn {
   width: 20px; height: 20px; border: 1.8px solid var(--muted); border-radius: 50%;
   background: var(--surface); cursor: pointer; position: relative; transition: all 0.15s ease;
