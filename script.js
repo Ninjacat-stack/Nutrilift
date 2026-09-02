@@ -334,6 +334,78 @@ function initFuel(){
   const origExport = window.NutriliftToast; // keep ref for later use
 }
 
+// — Stack — persisted defs (name/dose) + taken per day —
+const DEFAULT_STACK = [
+  {name:"Creatine Monohydrate",dose:"5 g · AM"},
+  {name:"Whey Protein Isolate",dose:"30 g · Post-workout"},
+  {name:"Pre-Workout Blend",dose:"1 scoop · Pre-lift"},
+  {name:"Omega-3 Fish Oil",dose:"2 g · PM"},
+  {name:"Vitamin D3 + K2",dose:"4000 IU · AM"}
+];
+function loadStackDefs(){ const d=loadStorage(); return d.stackDefs || DEFAULT_STACK; }
+function saveStackDefs(a){ const d=loadStorage(); d.stackDefs=a; saveStorage(d); }
+function initStackEditable(){
+  const list=document.getElementById("pillList"), form=document.getElementById("stackForm"), addBtn=document.getElementById("addStackBtn"), resetBtn=document.getElementById("resetStackBtn"), cancelBtn=document.getElementById("cancelStackBtn");
+  if(!list) return;
+  const defs=loadStackDefs(); if(defs.length!==5 || defs.some((e,i)=>e.name!==DEFAULT_STACK[i]?.name||e.dose!==DEFAULT_STACK[i]?.dose)){
+    const data=loadStorage(); const today=data.days?.[todayKey()]; const dones=today?.stack||[];
+    list.innerHTML=defs.map((s,i)=>`<li class="pill-card" data-taken="${dones[i]?"true":"false"}"><div class="pill-label"><span class="pill-name" contenteditable="true" spellcheck="false">${s.name}</span><span class="pill-dose mono" contenteditable="true" spellcheck="false">${s.dose}</span></div><div style="display:flex; gap:6px; align-items:center;"><button type="button" class="pop-btn" aria-pressed="${dones[i]?"true":"false"}" aria-label="Mark taken"><span class="pop"></span></button><button type="button" class="del-stack" aria-label="Delete" title="Delete" style="width:20px;height:20px;border-radius:50%;border:1px solid var(--line);background:var(--surface);color:var(--muted);cursor:pointer;">×</button></div></li>`).join("");
+    updateStackAdherence();
+  }
+  const collect=()=> Array.from(list.querySelectorAll(".pill-card")).map(li=>({name:li.querySelector(".pill-name")?.textContent.trim()||"",dose:li.querySelector(".pill-dose")?.textContent.trim()||""}));
+  list.addEventListener("focusout",e=>{ if(e.target.matches(".pill-name,.pill-dose")) saveStackDefs(collect()); });
+  list.addEventListener("click",e=>{ const del=e.target.closest(".del-stack"); if(!del) return; del.closest("li").remove(); saveStackDefs(collect()); updateStackAdherence(); persistCurrentState(); window.NutriliftToast&&window.NutriliftToast("Supplement removed"); });
+  addBtn?.addEventListener("click",()=>{ form.hidden=!form.hidden; if(!form.hidden) document.getElementById("stackName")?.focus(); });
+  cancelBtn?.addEventListener("click",()=>{ form.hidden=true; form.reset(); });
+  form?.addEventListener("submit",e=>{ e.preventDefault(); const n=document.getElementById("stackName").value.trim(), d=document.getElementById("stackDose").value.trim()||"—"; if(!n) return; const li=document.createElement("li"); li.className="pill-card"; li.setAttribute("data-taken","false"); li.innerHTML=`<div class="pill-label"><span class="pill-name" contenteditable="true" spellcheck="false">${n}</span><span class="pill-dose mono" contenteditable="true" spellcheck="false">${d}</span></div><div style="display:flex; gap:6px; align-items:center;"><button type="button" class="pop-btn" aria-pressed="false" aria-label="Mark taken"><span class="pop"></span></button><button type="button" class="del-stack" aria-label="Delete" title="Delete" style="width:20px;height:20px;border-radius:50%;border:1px solid var(--line);background:var(--surface);color:var(--muted);cursor:pointer;">×</button></div>`; list.appendChild(li); saveStackDefs(collect()); updateStackAdherence(); persistCurrentState(); form.reset(); form.hidden=true; window.NutriliftToast&&window.NutriliftToast("Supplement added"); });
+  resetBtn?.addEventListener("click",()=>{ if(!confirm("Reset stack to default?")) return; saveStackDefs(DEFAULT_STACK); location.reload(); });
+}
+// — PRs — persisted, editable —
+const DEFAULT_PRS = [
+  {lift:"Bench Press",best:"95 kg",date:"AUG 02"},
+  {lift:"Squat",best:"140 kg",date:"JUL 28"},
+  {lift:"Deadlift",best:"180 kg",date:"JUL 12"},
+  {lift:"Front Squat",best:"100 kg",date:"JUN 30"},
+  {lift:"Overhead Press",best:"62.5 kg",date:"JUN 22"}
+];
+function loadPRs(){ const d=loadStorage(); return d.prs || DEFAULT_PRS; }
+function savePRs(a){ const d=loadStorage(); d.prs=a; saveStorage(d); }
+function initPrEditable(){
+  const tbody=document.querySelector("#prSheet tbody"), addBtn=document.getElementById("addPrBtn"), resetBtn=document.getElementById("resetPrBtn");
+  if(!tbody) return;
+  const prs=loadPRs(); if(prs.length!==5 || prs.some((e,i)=> e.lift!==DEFAULT_PRS[i]?.lift)){
+    tbody.innerHTML=prs.map(r=>`<tr><td contenteditable="true" spellcheck="false">${r.lift}</td><td class="mono" contenteditable="true" spellcheck="false">${r.best}</td><td class="mono th-check" contenteditable="true" spellcheck="false">${r.date}</td><td style="text-align:center;"><button type="button" class="del-pr" aria-label="Delete" style="width:18px;height:18px;border-radius:50%;border:1px solid var(--line);background:var(--surface);color:var(--muted);cursor:pointer;">×</button></td></tr>`).join("");
+  }
+  const collect=()=> Array.from(tbody.querySelectorAll("tr")).map(tr=>{ const tds=tr.querySelectorAll("td"); return {lift:tds[0]?.textContent.trim()||"",best:tds[1]?.textContent.trim()||"",date:tds[2]?.textContent.trim()||""}; });
+  tbody.addEventListener("focusout", e=>{ if(e.target.matches("td[contenteditable]")) savePRs(collect()); });
+  tbody.addEventListener("click", e=>{ const del=e.target.closest(".del-pr"); if(!del) return; del.closest("tr").remove(); savePRs(collect()); window.NutriliftToast&&window.NutriliftToast("PR removed"); });
+  addBtn?.addEventListener("click",()=>{ const tr=document.createElement("tr"); tr.innerHTML=`<td contenteditable="true" spellcheck="false">New Lift</td><td class="mono" contenteditable="true" spellcheck="false">0 kg</td><td class="mono th-check" contenteditable="true" spellcheck="false">AUG 15</td><td style="text-align:center;"><button type="button" class="del-pr" aria-label="Delete" style="width:18px;height:18px;border-radius:50%;border:1px solid var(--line);background:var(--surface);color:var(--muted);cursor:pointer;">×</button></td>`; tbody.appendChild(tr); savePRs(collect()); tr.querySelector("td").focus(); });
+  resetBtn?.addEventListener("click",()=>{ if(!confirm("Reset PRs?")) return; savePRs(DEFAULT_PRS); location.reload(); });
+}
+// — Week + Insights — live from localStorage —
+function computeLongestStreak(data){
+  const keys=Object.keys(data.days||{}).sort(); let best=0, cur=0, prev=null;
+  keys.forEach(k=>{ const d=new Date(k); if(prev){ const diff=(d-prev)/86400000; if(diff===1) cur++; else cur=1; } else cur=1; best=Math.max(best,cur); prev=d; });
+  return best;
+}
+function initWeekInsights(){
+  const data=loadStorage(), days=data.days||{};
+  // week chart: last 7 days Mon-Sun
+  const cols=document.querySelectorAll(".week-chart .day-col"); if(cols.length===7){
+    const today=new Date(); const dayIdx=today.getDay(); const monday=new Date(today); monday.setDate(today.getDate()-((dayIdx+6)%7));
+    cols.forEach((col,i)=>{ const d=new Date(monday); d.setDate(monday.getDate()+i); const k=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`; const v=days[k]; const vol=v? (v.lifts?.filter(Boolean).length||0) : 0; col.style.setProperty("--vol", vol); });
+    const totalWeek=Array.from(cols).reduce((a,c)=>a+parseInt(c.style.getPropertyValue("--vol")||0),0);
+    const ws=document.getElementById("weekSummary"); if(ws) ws.textContent=`${totalWeek?Math.ceil(totalWeek/2):0} sessions · ${(() => { let t=0,p=0; Object.values(days).forEach(d=>{ if(d.stack){t+=d.stack.filter(Boolean).length; p+=d.stack.length;}}); return p?Math.round(t/p*100):71; })()}% stack adherence`;
+  }
+  const longest=computeLongestStreak(data); const ls=document.getElementById("insightStreak"); if(ls) ls.textContent=`${longest||14} days`;
+  const adhEl=document.getElementById("insightAdherence"); if(adhEl){ let t=0,p=0; Object.values(days).forEach(d=>{ if(d.stack){t+=d.stack.filter(Boolean).length; p+=d.stack.length;}}); adhEl.textContent=(p?Math.round(t/p*100):71)+"%"; }
+  const volEl=document.getElementById("insightVolume"); if(volEl){
+    const now=Object.values(days).slice(-7).reduce((a,d)=>a+(d.lifts?.filter(Boolean).length||0),0);
+    const prev=Object.values(days).slice(-14,-7).reduce((a,d)=>a+(d.lifts?.filter(Boolean).length||0),0);
+    const pct=prev? Math.round((now-prev)/prev*100) : 8; volEl.textContent=(pct>=0?`+${pct}%`:`${pct}%`);
+  }
+}
+
 // — Reveal — clean fade + slight rise only
 function initReveal() {
   const prefersReduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -590,11 +662,14 @@ document.addEventListener("DOMContentLoaded", () => {
   initHeaderShrink();
   initDateAndStreak();
   initEditableLog();
+  initStackEditable();
+  initPrEditable();
   initBarbellProgress();
   initCheckButtons();
   initStackAdherence();
   loadPersistedState();
   initFuel();
+  initWeekInsights();
   initReveal();
   initTilt3D();
   initParallax();

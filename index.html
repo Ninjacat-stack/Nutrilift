@@ -219,40 +219,52 @@
         <ul class="pill-list" id="pillList">
           <li class="pill-card" data-taken="true">
             <div class="pill-label">
-              <span class="pill-name">Creatine Monohydrate</span>
-              <span class="pill-dose mono">5 g · AM</span>
+              <span class="pill-name" contenteditable="true" spellcheck="false">Creatine Monohydrate</span>
+              <span class="pill-dose mono" contenteditable="true" spellcheck="false">5 g · AM</span>
             </div>
-            <button type="button" class="pop-btn" aria-pressed="true" aria-label="Mark Creatine Monohydrate taken"><span class="pop"></span></button>
+            <div style="display:flex; gap:6px; align-items:center;"><button type="button" class="pop-btn" aria-pressed="true" aria-label="Mark taken"><span class="pop"></span></button><button type="button" class="del-stack" aria-label="Delete" title="Delete" style="width:20px;height:20px;border-radius:50%;border:1px solid var(--line);background:var(--surface);color:var(--muted);cursor:pointer;">×</button></div>
           </li>
           <li class="pill-card" data-taken="true">
             <div class="pill-label">
-              <span class="pill-name">Whey Protein Isolate</span>
-              <span class="pill-dose mono">30 g · Post-workout</span>
+              <span class="pill-name" contenteditable="true" spellcheck="false">Whey Protein Isolate</span>
+              <span class="pill-dose mono" contenteditable="true" spellcheck="false">30 g · Post-workout</span>
             </div>
-            <button type="button" class="pop-btn" aria-pressed="true" aria-label="Mark Whey Protein Isolate taken"><span class="pop"></span></button>
+            <div style="display:flex; gap:6px; align-items:center;"><button type="button" class="pop-btn" aria-pressed="true" aria-label="Mark taken"><span class="pop"></span></button><button type="button" class="del-stack" aria-label="Delete" title="Delete" style="width:20px;height:20px;border-radius:50%;border:1px solid var(--line);background:var(--surface);color:var(--muted);cursor:pointer;">×</button></div>
           </li>
           <li class="pill-card" data-taken="false">
             <div class="pill-label">
-              <span class="pill-name">Pre-Workout Blend</span>
-              <span class="pill-dose mono">1 scoop · Pre-lift</span>
+              <span class="pill-name" contenteditable="true" spellcheck="false">Pre-Workout Blend</span>
+              <span class="pill-dose mono" contenteditable="true" spellcheck="false">1 scoop · Pre-lift</span>
             </div>
-            <button type="button" class="pop-btn" aria-pressed="false" aria-label="Mark Pre-Workout Blend taken"><span class="pop"></span></button>
+            <div style="display:flex; gap:6px; align-items:center;"><button type="button" class="pop-btn" aria-pressed="false" aria-label="Mark taken"><span class="pop"></span></button><button type="button" class="del-stack" aria-label="Delete" title="Delete" style="width:20px;height:20px;border-radius:50%;border:1px solid var(--line);background:var(--surface);color:var(--muted);cursor:pointer;">×</button></div>
           </li>
           <li class="pill-card" data-taken="false">
             <div class="pill-label">
-              <span class="pill-name">Omega-3 Fish Oil</span>
-              <span class="pill-dose mono">2 g · PM</span>
+              <span class="pill-name" contenteditable="true" spellcheck="false">Omega-3 Fish Oil</span>
+              <span class="pill-dose mono" contenteditable="true" spellcheck="false">2 g · PM</span>
             </div>
-            <button type="button" class="pop-btn" aria-pressed="false" aria-label="Mark Omega-3 Fish Oil taken"><span class="pop"></span></button>
+            <div style="display:flex; gap:6px; align-items:center;"><button type="button" class="pop-btn" aria-pressed="false" aria-label="Mark taken"><span class="pop"></span></button><button type="button" class="del-stack" aria-label="Delete" title="Delete" style="width:20px;height:20px;border-radius:50%;border:1px solid var(--line);background:var(--surface);color:var(--muted);cursor:pointer;">×</button></div>
           </li>
           <li class="pill-card" data-taken="false">
             <div class="pill-label">
-              <span class="pill-name">Vitamin D3 + K2</span>
-              <span class="pill-dose mono">4000 IU · AM</span>
+              <span class="pill-name" contenteditable="true" spellcheck="false">Vitamin D3 + K2</span>
+              <span class="pill-dose mono" contenteditable="true" spellcheck="false">4000 IU · AM</span>
             </div>
-            <button type="button" class="pop-btn" aria-pressed="false" aria-label="Mark Vitamin D3 taken"><span class="pop"></span></button>
+            <div style="display:flex; gap:6px; align-items:center;"><button type="button" class="pop-btn" aria-pressed="false" aria-label="Mark taken"><span class="pop"></span></button><button type="button" class="del-stack" aria-label="Delete" title="Delete" style="width:20px;height:20px;border-radius:50%;border:1px solid var(--line);background:var(--surface);color:var(--muted);cursor:pointer;">×</button></div>
           </li>
         </ul>
+        <div style="display:flex; gap:8px; margin-top:10px; flex-wrap:wrap;">
+          <button type="button" class="btn btn-sm btn-outline" id="addStackBtn">+ Add Supplement</button>
+          <button type="button" class="btn btn-sm btn-ghost" id="resetStackBtn">Reset</button>
+          <span class="mono" style="font-size:10px; color:var(--muted); align-self:center;">Click name/dose to edit</span>
+        </div>
+        <form id="stackForm" hidden style="margin-top:10px; display:grid; gap:8px; background:var(--paper); border:1px solid var(--line); border-radius:9px; padding:10px;">
+          <div style="display:grid; grid-template-columns:1.15fr 0.85fr; gap:8px;">
+            <label class="mono" style="font-size:10px; color:var(--muted);">Name<input id="stackName" placeholder="Ashwagandha" style="width:100%; margin-top:4px; padding:7px 8px; border:1px solid var(--line); border-radius:7px; background:var(--surface);"></label>
+            <label class="mono" style="font-size:10px; color:var(--muted);">Dose<input id="stackDose" placeholder="600 mg · PM" style="width:100%; margin-top:4px; padding:7px 8px; border:1px solid var(--line); border-radius:7px; background:var(--surface);"></label>
+          </div>
+          <div style="display:flex; gap:8px;"><button type="submit" class="btn btn-primary btn-sm" style="flex:1;">Add</button><button type="button" class="btn btn-ghost btn-sm" id="cancelStackBtn">Cancel</button></div>
+        </form>
         <div class="stack-tip mono">
           <span class="tip-icon">✦</span> Tip: Take creatine at the same time daily — adherence beats timing.
         </div>
@@ -332,18 +344,23 @@
           <h2>Personal Records</h2>
           <span class="adherence mono">Last 90 days</span>
         </div>
-        <table class="pr-sheet">
+        <table class="pr-sheet" id="prSheet">
           <thead>
-            <tr><th>Lift</th><th>Best</th><th class="th-check">Date</th></tr>
+            <tr><th>Lift</th><th>Best</th><th class="th-check">Date</th><th></th></tr>
           </thead>
           <tbody>
-            <tr><td>Bench Press</td><td class="mono">95 kg</td><td class="mono th-check">AUG 02</td></tr>
-            <tr><td>Squat</td><td class="mono">140 kg</td><td class="mono th-check">JUL 28</td></tr>
-            <tr><td>Deadlift</td><td class="mono">180 kg</td><td class="mono th-check">JUL 12</td></tr>
-            <tr><td>Front Squat</td><td class="mono">100 kg</td><td class="mono th-check">JUN 30</td></tr>
-            <tr><td>Overhead Press</td><td class="mono">62.5 kg</td><td class="mono th-check">JUN 22</td></tr>
+            <tr><td contenteditable="true" spellcheck="false">Bench Press</td><td class="mono" contenteditable="true" spellcheck="false">95 kg</td><td class="mono th-check" contenteditable="true" spellcheck="false">AUG 02</td><td style="text-align:center;"><button type="button" class="del-pr" aria-label="Delete" style="width:18px;height:18px;border-radius:50%;border:1px solid var(--line);background:var(--surface);color:var(--muted);cursor:pointer;">×</button></td></tr>
+            <tr><td contenteditable="true" spellcheck="false">Squat</td><td class="mono" contenteditable="true" spellcheck="false">140 kg</td><td class="mono th-check" contenteditable="true" spellcheck="false">JUL 28</td><td style="text-align:center;"><button type="button" class="del-pr" aria-label="Delete" style="width:18px;height:18px;border-radius:50%;border:1px solid var(--line);background:var(--surface);color:var(--muted);cursor:pointer;">×</button></td></tr>
+            <tr><td contenteditable="true" spellcheck="false">Deadlift</td><td class="mono" contenteditable="true" spellcheck="false">180 kg</td><td class="mono th-check" contenteditable="true" spellcheck="false">JUL 12</td><td style="text-align:center;"><button type="button" class="del-pr" aria-label="Delete" style="width:18px;height:18px;border-radius:50%;border:1px solid var(--line);background:var(--surface);color:var(--muted);cursor:pointer;">×</button></td></tr>
+            <tr><td contenteditable="true" spellcheck="false">Front Squat</td><td class="mono" contenteditable="true" spellcheck="false">100 kg</td><td class="mono th-check" contenteditable="true" spellcheck="false">JUN 30</td><td style="text-align:center;"><button type="button" class="del-pr" aria-label="Delete" style="width:18px;height:18px;border-radius:50%;border:1px solid var(--line);background:var(--surface);color:var(--muted);cursor:pointer;">×</button></td></tr>
+            <tr><td contenteditable="true" spellcheck="false">Overhead Press</td><td class="mono" contenteditable="true" spellcheck="false">62.5 kg</td><td class="mono th-check" contenteditable="true" spellcheck="false">JUN 22</td><td style="text-align:center;"><button type="button" class="del-pr" aria-label="Delete" style="width:18px;height:18px;border-radius:50%;border:1px solid var(--line);background:var(--surface);color:var(--muted);cursor:pointer;">×</button></td></tr>
           </tbody>
         </table>
+        <div style="display:flex; gap:8px; margin-top:10px; flex-wrap:wrap;">
+          <button type="button" class="btn btn-sm btn-outline" id="addPrBtn">+ Add PR</button>
+          <button type="button" class="btn btn-sm btn-ghost" id="resetPrBtn">Reset</button>
+          <span class="mono" style="font-size:10px; color:var(--muted); align-self:center;">Click to edit · saved locally</span>
+        </div>
         <a href="programs.html" class="pr-link mono">View all PRs →</a>
       </section>
     </div>
@@ -355,17 +372,17 @@
     <div class="insights-inner">
       <div class="insight-card">
         <span class="mono insight-kicker">STREAK MATH</span>
-        <strong>14 days</strong>
+        <strong id="insightStreak">14 days</strong>
         <span class="mono">longest streak this year</span>
       </div>
       <div class="insight-card">
         <span class="mono insight-kicker">VOLUME</span>
-        <strong>+8.2%</strong>
+        <strong id="insightVolume">+8.2%</strong>
         <span class="mono">vs last 4 weeks</span>
       </div>
       <div class="insight-card">
         <span class="mono insight-kicker">ADHERENCE</span>
-        <strong>71%</strong>
+        <strong id="insightAdherence">71%</strong>
         <span class="mono">stack taken (90d avg)</span>
       </div>
       <div class="insight-card cta">
