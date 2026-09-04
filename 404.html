@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>404 — Nutrilift</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect x='8' y='8' width='16' height='16' fill='%23C81E3D' transform='rotate(45 16 16)'/%3E%3C/svg%3E">
+  <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  <script>(function(){try{var s=JSON.parse(localStorage.getItem("nutrilift:v1")||"{}");var t=s.theme||(window.matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light");document.documentElement.setAttribute("data-theme",t);}catch(e){}})();</script>
+</head>
+<body>
+  <a href="index.html" class="skip-link">Skip to content</a>
+  <div class="scene-bg" aria-hidden="true"><div class="scene-grid"></div><div class="orb orb-1"></div></div>
+  <header class="masthead">
+    <div class="masthead-left"><a href="index.html" class="wordmark"><span class="mark"></span>NUTRILIFT<span class="dot">.</span></a></div>
+    <nav class="masthead-center" aria-label="Primary"><a href="index.html">Home</a><a href="programs.html">Programs</a><a href="history.html">History</a></nav>
+    <div class="masthead-right"><button id="themeToggle" class="mode-switch" aria-pressed="false" aria-label="Toggle theme"><span class="switch-track"><span class="switch-thumb"></span></span><span class="switch-label">DARK</span></button></div>
+  </header>
+  <main style="max-width:720px; margin:48px auto; padding:0 clamp(20px,5vw,32px); text-align:center;">
+    <div style="display:inline-block; font-family:var(--font-mono); font-size:11px; letter-spacing:0.1em; color:var(--iron-red); border:1px solid var(--iron-red-dim); padding:4px 10px; border-radius:20px; background:var(--iron-red-soft);">404 — NOT FOUND</div>
+    <h1 style="font-family:var(--font-display); font-size:clamp(32px,6vw,48px); margin:16px 0 10px;">Lost between sets?</h1>
+    <p style="color:var(--ink-soft); line-height:1.6; max-width:46ch; margin:0 auto 22px;">The page you’re looking for doesn’t exist or was moved. Your lifts and stack are safe in localStorage.</p>
+    <div style="display:flex; gap:10px; justify-content:center; flex-wrap:wrap;">
+      <a href="index.html" class="btn btn-primary">Back to Dashboard</a>
+      <a href="history.html" class="btn btn-outline">View History</a>
+      <a href="programs.html" class="btn btn-ghost">Browse Programs</a>
+    </div>
+    <p class="mono" style="font-size:11px; color:var(--muted); margin-top:18px;">If you typed the URL, check spelling. Route: <code id="badRoute" style="background:var(--paper); padding:2px 6px; border-radius:4px; border:1px solid var(--line);"></code></p>
+  </main>
+  <script>document.getElementById("badRoute").textContent=location.pathname; document.getElementById("themeToggle")?.addEventListener("click",()=>{const c=document.documentElement.getAttribute("data-theme");const n=c==="dark"?"light":"dark";document.documentElement.setAttribute("data-theme",n);try{const s=JSON.parse(localStorage.getItem("nutrilift:v1")||"{}");s.theme=n;localStorage.setItem("nutrilift:v1",JSON.stringify(s));}catch(e){}});</script>
+</body>
+</html>
