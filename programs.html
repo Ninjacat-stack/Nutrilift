@@ -38,6 +38,10 @@
       <a href="history.html">History</a>
       <a href="index.html#pricing">Pricing</a>
     </nav>
+    <button type="button" id="mobileNavToggle" class="mobile-toggle" aria-label="Toggle navigation" aria-expanded="false" aria-controls="mobileNav">☰</button>
+    <nav id="mobileNav" class="mobile-nav" aria-hidden="true" aria-label="Mobile">
+      <a href="index.html#log">Log</a><a href="index.html#stack">Stack</a><a href="index.html#week">Week</a><a href="programs.html">Programs</a><a href="history.html">History</a><a href="index.html#pricing">Pricing</a>
+    </nav>
     <div class="masthead-right">
       <span class="date-badge mono" id="dateBadge"></span>
       <span class="streak">STREAK <strong class="mono" id="streakCount">0</strong> DAYS</span>
@@ -188,7 +192,7 @@
         <div class="footer-social mono"><a href="index.html">Home</a><a href="programs.html">Programs</a><a href="index.html#pricing">Pricing</a></div>
       </div>
       <div class="footer-col"><span class="mono footer-title">Product</span><a href="index.html#log">Today's Log</a><a href="index.html#stack">Stack</a><a href="programs.html">Programs</a><a href="index.html#pricing">Pricing</a></div>
-      <div class="footer-col"><span class="mono footer-title">Resources</span><a href="index.html#method">The Method</a><a href="index.html#faq">FAQ</a><a href="#">Changelog</a></div>
+      <div class="footer-col"><span class="mono footer-title">Resources</span><a href="index.html#method">The Method</a><a href="index.html#faq">FAQ</a><a href="#" data-toast="Changelog — coming soon">Changelog</a></div>
       <div class="footer-col"><span class="mono footer-title">Stay in the loop</span><p class="mono footer-note">Weekly volume + adherence recap.</p><form class="footer-form" onsubmit="event.preventDefault(); this.reset(); window.NutriliftToast && window.NutriliftToast('You\'re on the list — check your inbox.');"><input type="email" placeholder="you@email.com" required aria-label="Email"><button class="btn btn-primary btn-sm" type="submit">Subscribe</button></form></div>
     </div>
     <div class="footer-bottom mono"><span>© 2026 Nutrilift · Built for lifters. <span class="hide-mobile">· <kbd>?</kbd> help · <kbd>t</kbd> theme</span></span><span>SQUAT · BENCH · DEADLIFT · RINSE · REPEAT</span></div>
