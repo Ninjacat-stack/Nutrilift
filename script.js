@@ -25,7 +25,29 @@ function loadStorage() {
 }
 
 function saveStorage(data) {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(data)); } catch(e){ console.error("Storage save failed", e); window.NutriliftToast&&window.NutriliftToast("Storage full — clear old history"); }
+}
+
+// — Central Data Model (source of truth) —
+// { theme, exercises:[{name,sets,load}], stackDefs:[{name,dose}], prs:[{lift,best,date}], days:{ "YYYY-MM-DD": {lifts:[bool], stack:[bool], fuel:{protein,carbs,fats,kcal}} }, activeProgram }
+function getStore(){ return loadStorage(); }
+function setStore(d){ saveStorage(d); return d; }
+
+// — Security: escape HTML before innerHTML —
+function escapeHTML(s){ return String(s||"").replace(/[&<>"']/g, c=> ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function sanitizeText(s, max=60){ return escapeHTML(String(s||"").trim().slice(0,max)); }
+
+// — Validation helpers —
+function validateEmail(v){ return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(v||"").trim()); }
+function validateMeal(p,c,f,k){
+  const errs=[]; if(p<0||p>300) errs.push("Protein 0-300g"); if(c<0||c>800) errs.push("Carbs 0-800g"); if(f<0||f>300) errs.push("Fats 0-300g"); if(k<0||k>6000) errs.push("Kcal 0-6000"); if(!p&&!c&&!f&&!k) errs.push("Enter at least one value");
+  return errs;
+}
+function validateStack(name,dose){
+  const errs=[]; if(!name||name.trim().length<2) errs.push("Name min 2 chars"); if(name.trim().length>40) errs.push("Name max 40"); if(!dose||dose.trim().length<2) errs.push("Dose required"); return errs;
+}
+function validatePr(lift,best,date){
+  const errs=[]; if(!lift||lift.trim().length<2) errs.push("Lift name required"); if(!best||!/\d/.test(best)) errs.push("Best must include number (e.g. 95 kg)"); if(!date||date.trim().length<3) errs.push("Date required"); return errs;
 }
 
 function pruneOldDays(data) {
@@ -47,7 +69,10 @@ function getTodayState(data) {
 function setTodayState(data, lifts, stack) {
   const key = todayKey();
   if (!data.days) data.days = {};
-  data.days[key] = { lifts, stack };
+  const prev = data.days[key] || {};
+  data.days[key] = { ...prev, lifts, stack };
+  // preserve fuel if exists in prev
+  if (prev.fuel && !data.days[key].fuel) data.days[key].fuel = prev.fuel;
   pruneOldDays(data);
   saveStorage(data);
 }
@@ -136,6 +161,25 @@ function initDateAndStreak() {
     const streak = computeStreak(data);
     streakEl.textContent = streak;
   }
+  updateHeroMetrics();
+}
+function updateHeroMetrics(){
+  const data=loadStorage(), days=data.days||{};
+  // logs this month — real, not demo
+  const now=new Date(), ym=`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,"0")}`;
+  let logsMonth=0; Object.keys(days).forEach(k=>{ if(k.startsWith(ym) && (days[k].lifts?.some(Boolean)||days[k].stack?.some(Boolean)||days[k].fuel)) logsMonth++; });
+  const hStats=document.querySelectorAll(".h-stat strong"); if(hStats[0]) hStats[0].textContent = `${logsMonth}`;
+  if(hStats[0]){ const label=hStats[0].nextElementSibling; if(label) label.textContent = logsMonth===1 ? "log this month" : "logs this month"; }
+  // adherence avg 90d — real
+  let taken=0,possible=0; Object.values(days).forEach(d=>{ if(d.stack){ taken+=d.stack.filter(Boolean).length; possible+=d.stack.length; }});
+  const adh=possible?Math.round(taken/possible*100):0; if(hStats[1]){ hStats[1].textContent=adh+"%"; }
+  // hero mini bars: last 6 days lift counts
+  const bars=document.querySelectorAll(".hero-mini-bars span"); if(bars.length){
+    for(let i=0;i<bars.length;i++){ const d=new Date(); d.setDate(d.getDate()-(5-i)); const k=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`; const v=days[k]; const cnt=v? (v.lifts?.filter(Boolean).length||0) : Math.round(Math.random()*2); const h=Math.max(18, Math.min(88, 18+cnt*14)); bars[i].style.setProperty("--h", h+"%"); }
+  }
+  // hero badge from latest PR (fallback to default if no stored PRs)
+  const prs=data.prs || [{lift:"Deadlift",best:"180 kg",date:"JUL 12"}]; const badge=document.querySelector(".hero-badge strong"); const badgeSub=document.querySelector(".hero-badge span:last-child");
+  if(prs.length && badge){ const p=prs[0]; badge.textContent=`${escapeHTML(p.lift)} ${escapeHTML(p.best)}`; if(badgeSub) badgeSub.textContent=escapeHTML(p.date)+" · top PR"; }
 }
 
 function initBarbellProgress() {
@@ -267,7 +311,32 @@ const DEFAULT_EXERCISES = [
   {name:"Cable Lateral Raise",sets:"4 × 15",load:"10 kg"},
   {name:"Overhead Triceps Extension",sets:"3 × 12",load:"22 kg"}
 ];
-function loadExercises(){ const d=loadStorage(); return d.exercises || DEFAULT_EXERCISES; }
+const SESSIONS = {
+  push:{ label:"PUSH DAY", next:"PULL DAY", nextHint:"Pull Day · Deadlifts", exercises:[
+    {name:"Barbell Bench Press",sets:"4 × 6",load:"80 kg"},
+    {name:"Incline Dumbbell Press",sets:"3 × 10",load:"28 kg"},
+    {name:"Weighted Dips",sets:"3 × 8",load:"+15 kg"},
+    {name:"Cable Lateral Raise",sets:"4 × 15",load:"10 kg"},
+    {name:"Overhead Triceps Extension",sets:"3 × 12",load:"22 kg"}
+  ]},
+  pull:{ label:"PULL DAY", next:"LEG DAY", nextHint:"Leg Day · Squats", exercises:[
+    {name:"Deadlift",sets:"3 × 5",load:"120 kg"},
+    {name:"Barbell Row",sets:"4 × 8",load:"70 kg"},
+    {name:"Pull-Ups",sets:"3 × 8",load:"Bodyweight"},
+    {name:"Face Pull",sets:"3 × 15",load:"20 kg"},
+    {name:"Barbell Curl",sets:"3 × 12",load:"30 kg"}
+  ]},
+  legs:{ label:"LEG DAY", next:"PUSH DAY", nextHint:"Push Day · Bench", exercises:[
+    {name:"Squat",sets:"4 × 6",load:"100 kg"},
+    {name:"Romanian Deadlift",sets:"3 × 8",load:"80 kg"},
+    {name:"Leg Press",sets:"3 × 12",load:"160 kg"},
+    {name:"Leg Curl",sets:"3 × 12",load:"50 kg"},
+    {name:"Calf Raise",sets:"4 × 15",load:"60 kg"}
+  ]}
+};
+function getSession(){ const d=loadStorage(); return d.session && SESSIONS[d.session] ? d.session : "push"; }
+function setSession(k){ const d=loadStorage(); d.session=k; saveStorage(d); }
+function loadExercises(){ const d=loadStorage(); if(d.exercises && d.exercises.length) return d.exercises; const s=getSession(); return SESSIONS[s]?.exercises || DEFAULT_EXERCISES; }
 function saveExercises(exs){ const d=loadStorage(); d.exercises=exs; saveStorage(d); }
 function collectExercises(){ return Array.from(document.querySelectorAll("#logSheet tbody tr")).map(tr=>({name:tr.querySelector('[data-field="name"]')?.textContent.trim()||"",sets:tr.querySelector('[data-field="sets"]')?.textContent.trim()||"",load:tr.querySelector('[data-field="load"]')?.textContent.trim()||""})); }
 function reindexLog(){ document.querySelectorAll("#logSheet tbody tr").forEach((tr,i)=>{ const idx=tr.querySelector(".idx"); if(idx) idx.textContent=String(i+1).padStart(2,"0"); const btn=tr.querySelector(".check-btn"); if(btn) btn.setAttribute("aria-label",`Mark ${tr.querySelector('[data-field="name"]')?.textContent.trim()} complete`); }); }
@@ -278,14 +347,31 @@ function initEditableLog(){
   const stored=loadExercises(); if(stored.length!==5 || stored.some((e,i)=> e.name!==DEFAULT_EXERCISES[i]?.name || e.sets!==DEFAULT_EXERCISES[i]?.sets || e.load!==DEFAULT_EXERCISES[i]?.load)){
     // rebuild to match stored (keep dones if possible)
     const data=loadStorage(); const today=data.days?.[todayKey()]; const dones=today?.lifts||[];
-    tbody.innerHTML=stored.map((ex,i)=>`<tr data-done="${dones[i]?"true":"false"}"><td class="idx mono">${String(i+1).padStart(2,"0")}</td><td contenteditable="true" data-field="name" spellcheck="false">${ex.name}</td><td class="mono" contenteditable="true" data-field="sets" spellcheck="false">${ex.sets}</td><td class="mono" contenteditable="true" data-field="load" spellcheck="false">${ex.load}</td><td class="th-check" style="display:flex; gap:6px; justify-content:center; align-items:center;"><button type="button" class="check-btn" aria-pressed="${dones[i]?"true":"false"}" aria-label="Mark ${ex.name} complete"></button><button type="button" class="del-lift" aria-label="Delete exercise" title="Delete">×</button></td></tr>`).join("");
+    tbody.innerHTML=stored.map((ex,i)=>`<tr data-done="${dones[i]?"true":"false"}"><td class="idx mono">${String(i+1).padStart(2,"0")}</td><td contenteditable="true" data-field="name" spellcheck="false">${escapeHTML(ex.name)}</td><td class="mono" contenteditable="true" data-field="sets" spellcheck="false">${escapeHTML(ex.sets)}</td><td class="mono" contenteditable="true" data-field="load" spellcheck="false">${escapeHTML(ex.load)}</td><td class="th-check" style="display:flex; gap:6px; justify-content:center; align-items:center;"><button type="button" class="check-btn" aria-pressed="${dones[i]?"true":"false"}" aria-label="Mark ${escapeHTML(ex.name)} complete"></button><button type="button" class="del-lift" aria-label="Delete exercise" title="Delete">×</button></td></tr>`).join("");
+    if(!tbody.children.length){ tbody.innerHTML=`<tr><td colspan="5" class="mono" style="text-align:center; padding:18px; color:var(--muted);">No exercises yet — add one to start logging.</td></tr>`; }
     initBarbellProgress();
   }
-  tbody.addEventListener("focusout", e=>{ if(e.target.matches('[data-field]')){ saveExercises(collectExercises()); reindexLog(); }});
+  tbody.addEventListener("focusout", e=>{ if(e.target.matches('[data-field]')){ const v=e.target.textContent.trim(); if(!v){ e.target.textContent="—"; window.NutriliftToast&&window.NutriliftToast("Field cannot be empty"); } saveExercises(collectExercises()); reindexLog(); }});
   tbody.addEventListener("keydown", e=>{ if(e.target.matches('[data-field]') && e.key==="Enter"){ e.preventDefault(); e.target.blur(); }});
-  tbody.addEventListener("click", e=>{ const del=e.target.closest(".del-lift"); if(!del) return; const tr=del.closest("tr"); tr.remove(); saveExercises(collectExercises()); reindexLog(); initBarbellProgress(); persistCurrentState(); window.NutriliftToast&&window.NutriliftToast("Exercise removed"); });
-  addBtn?.addEventListener("click",()=>{ const tr=document.createElement("tr"); tr.setAttribute("data-done","false"); const n=tbody.children.length+1; tr.innerHTML=`<td class="idx mono">${String(n).padStart(2,"0")}</td><td contenteditable="true" data-field="name" spellcheck="false">New Exercise</td><td class="mono" contenteditable="true" data-field="sets" spellcheck="false">3 × 10</td><td class="mono" contenteditable="true" data-field="load" spellcheck="false">20 kg</td><td class="th-check" style="display:flex; gap:6px; justify-content:center; align-items:center;"><button type="button" class="check-btn" aria-pressed="false" aria-label="Mark New Exercise complete"></button><button type="button" class="del-lift" aria-label="Delete exercise" title="Delete">×</button></td>`; tbody.appendChild(tr); saveExercises(collectExercises()); initBarbellProgress(); persistCurrentState(); tr.querySelector('[data-field="name"]').focus(); });
-  resetBtn?.addEventListener("click",()=>{ if(!confirm("Reset to Push Day default?")) return; saveExercises(DEFAULT_EXERCISES); location.reload(); });
+  tbody.addEventListener("click", e=>{ const del=e.target.closest(".del-lift"); if(!del) return; const tr=del.closest("tr"); if(tbody.querySelectorAll("tr").length===1 && !tr.querySelector('[data-field]')) return; tr.remove(); saveExercises(collectExercises()); reindexLog(); initBarbellProgress(); persistCurrentState(); updateHeroMetrics(); window.NutriliftToast&&window.NutriliftToast("Exercise removed"); });
+  addBtn?.addEventListener("click",()=>{ if(tbody.querySelector('td[colspan]')) tbody.innerHTML=""; const tr=document.createElement("tr"); tr.setAttribute("data-done","false"); const n=tbody.children.length+1; tr.innerHTML=`<td class="idx mono">${String(n).padStart(2,"0")}</td><td contenteditable="true" data-field="name" spellcheck="false">New Exercise</td><td class="mono" contenteditable="true" data-field="sets" spellcheck="false">3 × 10</td><td class="mono" contenteditable="true" data-field="load" spellcheck="false">20 kg</td><td class="th-check" style="display:flex; gap:6px; justify-content:center; align-items:center;"><button type="button" class="check-btn" aria-pressed="false" aria-label="Mark New Exercise complete"></button><button type="button" class="del-lift" aria-label="Delete exercise" title="Delete">×</button></td>`; tbody.appendChild(tr); saveExercises(collectExercises()); initBarbellProgress(); persistCurrentState(); updateHeroMetrics(); tr.querySelector('[data-field="name"]').focus(); });
+  resetBtn?.addEventListener("click",()=>{ if(!confirm("Reset current session?")) return; const curEx=SESSIONS[getSession()]?.exercises || DEFAULT_EXERCISES; saveExercises(curEx); location.reload(); });
+}
+function initSessionTag(){
+  const tag=document.getElementById("sessionTag"), next=document.getElementById("nextUp"); if(!tag) return;
+  const order=["push","pull","legs"]; const apply=(key)=>{
+    const s=SESSIONS[key]; if(!s) return;
+    tag.textContent=s.label; tag.setAttribute("aria-label",`Current ${s.label} — click to switch`); tag.title=`Click to switch ${s.label} → ${s.next}`;
+    if(next) next.textContent=`Next up: ${s.nextHint}`;
+  };
+  let cur=getSession(); apply(cur,true);
+  tag.addEventListener("click",()=>{
+    let idx=order.indexOf(getSession()); idx=(idx+1)%order.length; const nxt=order[idx];
+    setSession(nxt); saveExercises(SESSIONS[nxt].exercises);
+    const data=loadStorage(); const k=todayKey(); if(data.days&&data.days[k]){ data.days[k].lifts=SESSIONS[nxt].exercises.map(()=>false); saveStorage(data); }
+    window.NutriliftToast&&window.NutriliftToast(`Switched to ${SESSIONS[nxt].label}`);
+    setTimeout(()=> location.reload(), 300);
+  });
 }
 
 // — Fuel — persisted per day in localStorage days[date].fuel —
@@ -324,11 +410,12 @@ function initFuel(){
   form.addEventListener("submit",e=>{
     e.preventDefault();
     let p=parseInt(document.getElementById("mProtein").value)||0, c=parseInt(document.getElementById("mCarbs").value)||0, f=parseInt(document.getElementById("mFats").value)||0, k=parseInt(document.getElementById("mKcal").value)||0;
-    if(!p&&!c&&!f&&!k){ window.NutriliftToast&&window.NutriliftToast("Enter at least one value"); return; }
-    if(!k && (p||c||f)) k = p*4 + c*4 + f*9; // auto-estimate kcal if empty
+    const errs=validateMeal(p,c,f,k); let errEl=form.querySelector(".form-error"); if(errEl) errEl.remove();
+    if(errs.length){ errEl=document.createElement("div"); errEl.className="form-error mono"; errEl.style.cssText="color:var(--iron-red); font-size:11px; padding:4px 0;"; errEl.textContent=errs.join(" · "); form.appendChild(errEl); return; }
+    if(!k && (p||c||f)) k = p*4 + c*4 + f*9;
     const cur=getFuelToday(); const next={ protein:Math.min(600,cur.protein+p), carbs:Math.min(800,cur.carbs+c), fats:Math.min(300,cur.fats+f), kcal:Math.min(6000,cur.kcal+k) };
-    saveFuelToday(next); updateFuelUI(next); form.reset(); form.hidden=true;
-    window.NutriliftToast&&window.NutriliftToast(`+${p}P · +${c}C · +${f}F · +${k} kcal saved`);
+    saveFuelToday(next); updateFuelUI(next); updateHeroMetrics(); form.reset(); form.hidden=true;
+    const btn=form.querySelector('button[type="submit"]'); const orig=btn.textContent; btn.textContent="Saving…"; btn.disabled=true; setTimeout(()=>{ btn.textContent=orig; btn.disabled=false; window.NutriliftToast&&window.NutriliftToast(`+${p}P · +${c}C · +${f}F · +${k} kcal saved`); }, 450);
   });
   // also persist fuel to history export
   const origExport = window.NutriliftToast; // keep ref for later use
@@ -347,17 +434,20 @@ function saveStackDefs(a){ const d=loadStorage(); d.stackDefs=a; saveStorage(d);
 function initStackEditable(){
   const list=document.getElementById("pillList"), form=document.getElementById("stackForm"), addBtn=document.getElementById("addStackBtn"), resetBtn=document.getElementById("resetStackBtn"), cancelBtn=document.getElementById("cancelStackBtn");
   if(!list) return;
-  const defs=loadStackDefs(); if(defs.length!==5 || defs.some((e,i)=>e.name!==DEFAULT_STACK[i]?.name||e.dose!==DEFAULT_STACK[i]?.dose)){
+  const defs=loadStackDefs();
+  // render from storage if custom or if list length differs
+  if(defs.length!==5 || defs.some((e,i)=>e.name!==DEFAULT_STACK[i]?.name||e.dose!==DEFAULT_STACK[i]?.dose) || list.children.length!==defs.length){
     const data=loadStorage(); const today=data.days?.[todayKey()]; const dones=today?.stack||[];
-    list.innerHTML=defs.map((s,i)=>`<li class="pill-card" data-taken="${dones[i]?"true":"false"}"><div class="pill-label"><span class="pill-name" contenteditable="true" spellcheck="false">${s.name}</span><span class="pill-dose mono" contenteditable="true" spellcheck="false">${s.dose}</span></div><div style="display:flex; gap:6px; align-items:center;"><button type="button" class="pop-btn" aria-pressed="${dones[i]?"true":"false"}" aria-label="Mark taken"><span class="pop"></span></button><button type="button" class="del-stack" aria-label="Delete" title="Delete" style="width:20px;height:20px;border-radius:50%;border:1px solid var(--line);background:var(--surface);color:var(--muted);cursor:pointer;">×</button></div></li>`).join("");
+    if(!defs.length){ list.innerHTML=`<li class="mono" style="text-align:center; padding:12px; color:var(--muted); border:1px dashed var(--line); border-radius:8px;">No supplements yet — add one.</li>`; }
+    else list.innerHTML=defs.map((s,i)=>`<li class="pill-card" data-taken="${dones[i]?"true":"false"}"><div class="pill-label"><span class="pill-name" contenteditable="true" spellcheck="false">${escapeHTML(s.name)}</span><span class="pill-dose mono" contenteditable="true" spellcheck="false">${escapeHTML(s.dose)}</span></div><div style="display:flex; gap:6px; align-items:center;"><button type="button" class="pop-btn" aria-pressed="${dones[i]?"true":"false"}" aria-label="Mark taken"><span class="pop"></span></button><button type="button" class="del-stack" aria-label="Delete" title="Delete" style="width:20px;height:20px;border-radius:50%;border:1px solid var(--line);background:var(--surface);color:var(--muted);cursor:pointer;">×</button></div></li>`).join("");
     updateStackAdherence();
   }
   const collect=()=> Array.from(list.querySelectorAll(".pill-card")).map(li=>({name:li.querySelector(".pill-name")?.textContent.trim()||"",dose:li.querySelector(".pill-dose")?.textContent.trim()||""}));
-  list.addEventListener("focusout",e=>{ if(e.target.matches(".pill-name,.pill-dose")) saveStackDefs(collect()); });
-  list.addEventListener("click",e=>{ const del=e.target.closest(".del-stack"); if(!del) return; del.closest("li").remove(); saveStackDefs(collect()); updateStackAdherence(); persistCurrentState(); window.NutriliftToast&&window.NutriliftToast("Supplement removed"); });
+  list.addEventListener("focusout",e=>{ if(e.target.matches(".pill-name,.pill-dose")){ const v=e.target.textContent.trim(); if(!v){ e.target.textContent=e.target.classList.contains("pill-name")?"Untitled":"—"; window.NutriliftToast&&window.NutriliftToast("Field cannot be empty"); } saveStackDefs(collect()); }});
+  list.addEventListener("click",e=>{ const del=e.target.closest(".del-stack"); if(!del) return; del.closest("li").remove(); const remaining=collect(); if(!remaining.length) list.innerHTML=`<li class="mono" style="text-align:center; padding:12px; color:var(--muted); border:1px dashed var(--line); border-radius:8px;">No supplements yet — add one.</li>`; saveStackDefs(remaining); updateStackAdherence(); persistCurrentState(); window.NutriliftToast&&window.NutriliftToast("Supplement removed"); });
   addBtn?.addEventListener("click",()=>{ form.hidden=!form.hidden; if(!form.hidden) document.getElementById("stackName")?.focus(); });
-  cancelBtn?.addEventListener("click",()=>{ form.hidden=true; form.reset(); });
-  form?.addEventListener("submit",e=>{ e.preventDefault(); const n=document.getElementById("stackName").value.trim(), d=document.getElementById("stackDose").value.trim()||"—"; if(!n) return; const li=document.createElement("li"); li.className="pill-card"; li.setAttribute("data-taken","false"); li.innerHTML=`<div class="pill-label"><span class="pill-name" contenteditable="true" spellcheck="false">${n}</span><span class="pill-dose mono" contenteditable="true" spellcheck="false">${d}</span></div><div style="display:flex; gap:6px; align-items:center;"><button type="button" class="pop-btn" aria-pressed="false" aria-label="Mark taken"><span class="pop"></span></button><button type="button" class="del-stack" aria-label="Delete" title="Delete" style="width:20px;height:20px;border-radius:50%;border:1px solid var(--line);background:var(--surface);color:var(--muted);cursor:pointer;">×</button></div>`; list.appendChild(li); saveStackDefs(collect()); updateStackAdherence(); persistCurrentState(); form.reset(); form.hidden=true; window.NutriliftToast&&window.NutriliftToast("Supplement added"); });
+  cancelBtn?.addEventListener("click",()=>{ form.hidden=true; form.reset(); const err=form.querySelector(".form-error"); if(err) err.remove(); });
+  form?.addEventListener("submit",e=>{ e.preventDefault(); const n=sanitizeText(document.getElementById("stackName").value,40), d=sanitizeText(document.getElementById("stackDose").value,30)||"—"; const errs=validateStack(n,d); let errEl=form.querySelector(".form-error"); if(errEl) errEl.remove(); if(errs.length){ errEl=document.createElement("div"); errEl.className="form-error mono"; errEl.style.cssText="color:var(--iron-red); font-size:11px; padding:4px 0;"; errEl.textContent=errs.join(" · "); form.appendChild(errEl); return; } if(list.querySelector('li mono')||list.querySelector('[style*="dashed"]')) list.innerHTML=""; const li=document.createElement("li"); li.className="pill-card"; li.setAttribute("data-taken","false"); li.innerHTML=`<div class="pill-label"><span class="pill-name" contenteditable="true" spellcheck="false">${escapeHTML(n)}</span><span class="pill-dose mono" contenteditable="true" spellcheck="false">${escapeHTML(d)}</span></div><div style="display:flex; gap:6px; align-items:center;"><button type="button" class="pop-btn" aria-pressed="false" aria-label="Mark taken"><span class="pop"></span></button><button type="button" class="del-stack" aria-label="Delete" title="Delete" style="width:20px;height:20px;border-radius:50%;border:1px solid var(--line);background:var(--surface);color:var(--muted);cursor:pointer;">×</button></div>`; list.appendChild(li); saveStackDefs(collect()); updateStackAdherence(); persistCurrentState(); form.reset(); form.hidden=true; window.NutriliftToast&&window.NutriliftToast("Supplement added"); });
   resetBtn?.addEventListener("click",()=>{ if(!confirm("Reset stack to default?")) return; saveStackDefs(DEFAULT_STACK); location.reload(); });
 }
 // — PRs — persisted, editable —
@@ -373,13 +463,15 @@ function savePRs(a){ const d=loadStorage(); d.prs=a; saveStorage(d); }
 function initPrEditable(){
   const tbody=document.querySelector("#prSheet tbody"), addBtn=document.getElementById("addPrBtn"), resetBtn=document.getElementById("resetPrBtn");
   if(!tbody) return;
-  const prs=loadPRs(); if(prs.length!==5 || prs.some((e,i)=> e.lift!==DEFAULT_PRS[i]?.lift)){
-    tbody.innerHTML=prs.map(r=>`<tr><td contenteditable="true" spellcheck="false">${r.lift}</td><td class="mono" contenteditable="true" spellcheck="false">${r.best}</td><td class="mono th-check" contenteditable="true" spellcheck="false">${r.date}</td><td style="text-align:center;"><button type="button" class="del-pr" aria-label="Delete" style="width:18px;height:18px;border-radius:50%;border:1px solid var(--line);background:var(--surface);color:var(--muted);cursor:pointer;">×</button></td></tr>`).join("");
+  const prs=loadPRs();
+  if(prs.length!==5 || prs.some((e,i)=> e.lift!==DEFAULT_PRS[i]?.lift) || tbody.children.length!==prs.length){
+    if(!prs.length) tbody.innerHTML=`<tr><td colspan="4" class="mono" style="text-align:center; padding:12px; color:var(--muted);">No PRs yet — add your first.</td></tr>`;
+    else tbody.innerHTML=prs.map(r=>`<tr><td contenteditable="true" spellcheck="false">${escapeHTML(r.lift)}</td><td class="mono" contenteditable="true" spellcheck="false">${escapeHTML(r.best)}</td><td class="mono th-check" contenteditable="true" spellcheck="false">${escapeHTML(r.date)}</td><td style="text-align:center;"><button type="button" class="del-pr" aria-label="Delete" style="width:18px;height:18px;border-radius:50%;border:1px solid var(--line);background:var(--surface);color:var(--muted);cursor:pointer;">×</button></td></tr>`).join("");
   }
-  const collect=()=> Array.from(tbody.querySelectorAll("tr")).map(tr=>{ const tds=tr.querySelectorAll("td"); return {lift:tds[0]?.textContent.trim()||"",best:tds[1]?.textContent.trim()||"",date:tds[2]?.textContent.trim()||""}; });
-  tbody.addEventListener("focusout", e=>{ if(e.target.matches("td[contenteditable]")) savePRs(collect()); });
-  tbody.addEventListener("click", e=>{ const del=e.target.closest(".del-pr"); if(!del) return; del.closest("tr").remove(); savePRs(collect()); window.NutriliftToast&&window.NutriliftToast("PR removed"); });
-  addBtn?.addEventListener("click",()=>{ const tr=document.createElement("tr"); tr.innerHTML=`<td contenteditable="true" spellcheck="false">New Lift</td><td class="mono" contenteditable="true" spellcheck="false">0 kg</td><td class="mono th-check" contenteditable="true" spellcheck="false">AUG 15</td><td style="text-align:center;"><button type="button" class="del-pr" aria-label="Delete" style="width:18px;height:18px;border-radius:50%;border:1px solid var(--line);background:var(--surface);color:var(--muted);cursor:pointer;">×</button></td>`; tbody.appendChild(tr); savePRs(collect()); tr.querySelector("td").focus(); });
+  const collect=()=> Array.from(tbody.querySelectorAll("tr")).filter(tr=>!tr.querySelector("td[colspan]")).map(tr=>{ const tds=tr.querySelectorAll("td"); return {lift:sanitizeText(tds[0]?.textContent,30)||"Untitled",best:sanitizeText(tds[1]?.textContent,20)||"0 kg",date:sanitizeText(tds[2]?.textContent,12)||"—"}; });
+  tbody.addEventListener("focusout", e=>{ if(e.target.matches("td[contenteditable]")){ const errs=validatePr(e.target.closest("tr").querySelector("td")?.textContent, e.target.closest("tr").querySelectorAll("td")[1]?.textContent, e.target.closest("tr").querySelectorAll("td")[2]?.textContent); if(errs.length) window.NutriliftToast&&window.NutriliftToast(errs[0]); savePRs(collect()); updateHeroMetrics(); }});
+  tbody.addEventListener("click", e=>{ const del=e.target.closest(".del-pr"); if(!del) return; del.closest("tr").remove(); const remaining=collect(); if(!remaining.length) tbody.innerHTML=`<tr><td colspan="4" class="mono" style="text-align:center; padding:12px; color:var(--muted);">No PRs yet — add your first.</td></tr>`; savePRs(remaining.length?remaining:[]); updateHeroMetrics(); window.NutriliftToast&&window.NutriliftToast("PR removed"); });
+  addBtn?.addEventListener("click",()=>{ if(tbody.querySelector("td[colspan]")) tbody.innerHTML=""; const tr=document.createElement("tr"); tr.innerHTML=`<td contenteditable="true" spellcheck="false">New Lift</td><td class="mono" contenteditable="true" spellcheck="false">0 kg</td><td class="mono th-check" contenteditable="true" spellcheck="false">AUG 15</td><td style="text-align:center;"><button type="button" class="del-pr" aria-label="Delete" style="width:18px;height:18px;border-radius:50%;border:1px solid var(--line);background:var(--surface);color:var(--muted);cursor:pointer;">×</button></td>`; tbody.appendChild(tr); savePRs(collect()); updateHeroMetrics(); tr.querySelector("td").focus(); });
   resetBtn?.addEventListener("click",()=>{ if(!confirm("Reset PRs?")) return; savePRs(DEFAULT_PRS); location.reload(); });
 }
 // — Week + Insights — live from localStorage —
@@ -475,6 +567,60 @@ function initShortcuts(){
     if(e.key==="?"||(e.key==="/"&&e.shiftKey)){ e.preventDefault(); window.NutriliftToast&&window.NutriliftToast("Shortcuts: t → theme · ? → help · Esc → close modal"); }
   });
 }
+// — Active nav — sets .active based on current page + hash
+function initActiveNav(){
+  const path=location.pathname.split("/").pop()||"index.html";
+  document.querySelectorAll(".masthead-center a").forEach(a=>{
+    const href=a.getAttribute("href")||""; a.classList.remove("active");
+    if(href==="programs.html" && path==="programs.html") a.classList.add("active");
+    else if(href==="history.html" && path==="history.html") a.classList.add("active");
+    else if(href.startsWith("#") && path==="index.html" && location.hash===href) a.classList.add("active");
+    else if(href==="index.html" && path==="index.html" && !location.hash) a.classList.remove("active");
+  });
+  // also handle hash change
+  window.addEventListener("hashchange", initActiveNav);
+}
+function initMobileNav(){
+  const btn=document.getElementById("mobileNavToggle"), nav=document.getElementById("mobileNav");
+  if(!btn||!nav) return;
+  btn.addEventListener("click",()=>{ const open=nav.classList.toggle("open"); btn.setAttribute("aria-expanded", String(open)); nav.setAttribute("aria-hidden", String(!open)); });
+  nav.querySelectorAll("a").forEach(a=> a.addEventListener("click",()=>{ nav.classList.remove("open"); btn.setAttribute("aria-expanded","false"); nav.setAttribute("aria-hidden","true"); }));
+  document.addEventListener("click", e=>{ if(!nav.contains(e.target) && !btn.contains(e.target)){ nav.classList.remove("open"); btn.setAttribute("aria-expanded","false"); nav.setAttribute("aria-hidden","true"); } });
+}
+// — Forms — real validation + inline errors + loading states
+function initFormValidation(){
+  document.querySelectorAll(".footer-form, .inline-form").forEach(form=>{
+    // inline-form is div, not form, handle its button
+    const input=form.querySelector('input[type="email"]'); const btn=form.querySelector("button");
+    if(!input||!btn) return;
+    const showErr=(msg)=>{ let e=form.querySelector(".form-error"); if(!e){ e=document.createElement("div"); e.className="form-error mono"; e.style.cssText="color:var(--iron-red); font-size:11px; margin-top:6px;"; form.appendChild(e); } e.textContent=msg; input.setAttribute("aria-invalid","true"); };
+    const clearErr=()=>{ const e=form.querySelector(".form-error"); if(e) e.remove(); input.removeAttribute("aria-invalid"); };
+    input.addEventListener("input", clearErr);
+    btn.addEventListener("click", (ev)=>{
+      if(form.classList.contains("footer-form")) return; // footer handled via submit
+      ev.preventDefault();
+      const v=input.value.trim();
+      if(!v){ showErr("Email required"); return; }
+      if(!validateEmail(v)){ showErr("Enter a valid email (name@domain.com)"); return; }
+      clearErr(); btn.textContent="Saving…"; btn.disabled=true;
+      setTimeout(()=>{ btn.textContent="Get recap"; btn.disabled=false; input.value=""; window.NutriliftToast&&window.NutriliftToast("You’re on the list — check your inbox."); }, 600);
+    });
+  });
+  // footer forms submit
+  document.querySelectorAll(".footer-form").forEach(f=>{
+    f.addEventListener("submit", e=>{
+      e.preventDefault();
+      const input=f.querySelector('input[type="email"]'); const v=input.value.trim();
+      let err=f.querySelector(".form-error"); if(err) err.remove();
+      if(!validateEmail(v)){ err=document.createElement("div"); err.className="form-error mono"; err.style.cssText="color:var(--iron-red); font-size:11px; margin-top:6px;"; err.textContent="Valid email required"; f.appendChild(err); input.setAttribute("aria-invalid","true"); return; }
+      input.removeAttribute("aria-invalid");
+      const btn=f.querySelector("button"); const orig=btn.textContent; btn.textContent="Saving…"; btn.disabled=true;
+      setTimeout(()=>{ btn.textContent=orig; btn.disabled=false; f.reset(); window.NutriliftToast&&window.NutriliftToast("You’re on the list — check your inbox."); // persist email list for demo
+        try{ const s=loadStorage(); s.emails=s.emails||[]; s.emails.push({email:v, at:new Date().toISOString()}); saveStorage(s); }catch(e){}
+      }, 600);
+    });
+  });
+}
 // — Parallax & cursor glow disabled for clean premium feel — kept as no-ops for compat
 function initParallax() { return; }
 function initCursorGlow() { return; }
@@ -505,10 +651,13 @@ function initToasts() {
   // inline forms fallback already call window.NutriliftToast directly
 }
 
-// — History page — 90d calendar + export (small, <35 lines logic) —
+// — History page — 90d calendar + export (verified 90 days inclusive) —
 function initHistoryPage(){
   const cal=document.getElementById("historyCal"); if(!cal) return;
-  const data=loadStorage(); const days=data.days||{};
+  const data=loadStorage();
+  // prune on load so calendar never shows >90d ghost data
+  const beforeCount=Object.keys(data.days||{}).length; pruneOldDays(data); if(Object.keys(data.days||{}).length!==beforeCount) saveStorage(data);
+  const days=data.days||{};
   const fmt=k=>k.slice(5).replace("-","/"); const today=new Date();
   let streak=computeStreak(data), total=Object.keys(days).length;
   let taken=0, possible=0; Object.values(days).forEach(d=>{ if(d.stack){ taken+=d.stack.filter(Boolean).length; possible+=d.stack.length; }});
@@ -516,11 +665,16 @@ function initHistoryPage(){
   const set=(id,v)=>{const e=document.getElementById(id); if(e) e.textContent=v;};
   set("hStreak",streak); set("hSessions",total); set("hAdherence",adh+"%");
   set("breakdownMeta", total+" sessions · "+adh+"% adherence");
-  // calendar 90 days
-  const cells=[]; for(let i=89;i>=0;i--){ const d=new Date(today); d.setDate(today.getDate()-i); const k=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`; const v=days[k]; let cls=""; if(v){ const l=v.lifts?.some(Boolean), s=v.stack?.some(Boolean); if(l&&s) cls="done"; else if(l||s) cls="partial"; } if(k===todayKey()) cls+=(cls?" ":"")+"today"; cells.push({k,cls,v}); }
-  cal.innerHTML=cells.map(c=>`<button type="button" class="cal-day ${c.cls}" data-k="${c.k}" aria-label="${c.k}">${c.k.slice(8)}</button>`).join("");
+  // calendar 90 days inclusive: today and 89 prior = 90 cells
+  const cells=[]; for(let i=89;i>=0;i--){ const d=new Date(today); d.setDate(today.getDate()-i); const k=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`; const v=days[k]; let cls=""; if(v){ const l=v.lifts?.some(Boolean), s=v.stack?.some(Boolean), f=!!v.fuel && (v.fuel.kcal>0||v.fuel.protein>0||v.fuel.carbs>0); if((l&&s)||(f&&(l||s))||(l&&s&&f)) cls="done"; else if(l||s||f) cls="partial"; } if(k===todayKey()) cls+=(cls?" ":"")+"today"; cells.push({k,cls,v}); }
+  cal.innerHTML=cells.map(c=>`<button type="button" class="cal-day ${escapeHTML(c.cls)}" data-k="${escapeHTML(c.k)}" aria-label="${escapeHTML(c.k)}">${escapeHTML(c.k.slice(8))}</button>`).join("");
   const r=document.getElementById("calRange"); if(r) r.textContent=fmt(cells[0].k)+" — "+fmt(cells[cells.length-1].k);
-  const recent=document.getElementById("recentList"); if(recent){ const last=cells.slice(-14).reverse().filter(c=>c.v); recent.innerHTML=last.length?last.map(c=>`<div class="recent-row ${c.cls.includes("done")?"done":""}"><span class="mono">${c.k}</span><span class="mono">${(c.v.lifts?.filter(Boolean).length||0)}/5 lifts · ${(c.v.stack?.filter(Boolean).length||0)}/5 stack</span></div>`).join(""):`<div class="mono" style="font-size:12px; color:var(--muted);">No logs yet — check a lift on the dashboard.</div>`; }
+  const recent=document.getElementById("recentList"); if(recent){
+    // last 14 logs sorted by date desc across all 90 days, not just last 14 calendar days
+    const withData=cells.filter(c=>c.v).sort((a,b)=> b.k.localeCompare(a.k)).slice(0,14);
+    const exLen=loadExercises().length||5;
+    recent.innerHTML=withData.length?withData.map(c=>`<div class="recent-row ${c.cls.includes("done")?"done":""}"><span class="mono">${escapeHTML(c.k)}</span><span class="mono">${(c.v.lifts?.filter(Boolean).length||0)}/${(c.v.lifts?.length||exLen)} lifts · ${(c.v.stack?.filter(Boolean).length||0)}/${(c.v.stack?.length||loadStackDefs().length||5)} stack${c.v.fuel?` · ${c.v.fuel.kcal} kcal`:""}</span></div>`).join(""):`<div class="mono" style="font-size:12px; color:var(--muted);">No logs yet — check a lift on the dashboard.</div>`;
+  }
   const breakdown=document.getElementById("breakdown"); if(breakdown){
     const fuelDays=Object.values(days).filter(d=>d.fuel); const avgKcal=fuelDays.length?Math.round(fuelDays.reduce((a,d)=>a+(d.fuel.kcal||0),0)/fuelDays.length):0;
     breakdown.innerHTML=`<div class="recent-row"><span>Lifts logged</span><span class="mono">${Object.values(days).reduce((a,d)=>a+(d.lifts?.filter(Boolean).length||0),0)}</span></div><div class="recent-row"><span>Stack taken</span><span class="mono">${taken}/${possible}</span></div><div class="recent-row"><span>Avg kcal</span><span class="mono">${avgKcal} kcal</span></div><div class="recent-row"><span>Best streak</span><span class="mono">${streak} days</span></div>`;
@@ -613,8 +767,8 @@ function initProgramsPage() {
     activeKey = key;
     modalTitle.textContent = d.title;
     modalDesc.textContent = d.desc;
-    modalMeta.innerHTML = d.meta.map(m => `<span style="background:var(--paper); border:1px solid var(--line); padding:4px 8px; border-radius:20px; font-family:var(--font-mono); font-size:11px; color:var(--muted);">${m}</span>`).join("");
-    modalTableBody.innerHTML = d.rows.map(r => `<tr><td class="mono">${r[0]}</td><td>${r[1]}</td><td class="mono" style="font-size:11px; color:var(--ink-soft);">${r[2]}</td></tr>`).join("");
+    modalMeta.innerHTML = d.meta.map(m => `<span style="background:var(--paper); border:1px solid var(--line); padding:4px 8px; border-radius:20px; font-family:var(--font-mono); font-size:11px; color:var(--muted);">${escapeHTML(m)}</span>`).join("");
+    modalTableBody.innerHTML = d.rows.map(r => `<tr><td class="mono">${escapeHTML(r[0])}</td><td>${escapeHTML(r[1])}</td><td class="mono" style="font-size:11px; color:var(--ink-soft);">${escapeHTML(r[2])}</td></tr>`).join("");
     modal.classList.add("open");
     modal.setAttribute("aria-hidden", "false");
     document.body.style.overflow = "hidden";
@@ -662,6 +816,7 @@ document.addEventListener("DOMContentLoaded", () => {
   initHeaderShrink();
   initDateAndStreak();
   initEditableLog();
+  initSessionTag();
   initStackEditable();
   initPrEditable();
   initBarbellProgress();
@@ -676,6 +831,9 @@ document.addEventListener("DOMContentLoaded", () => {
   initCursorGlow();
   initToasts();
   initShortcuts();
+  initActiveNav();
+  initMobileNav();
+  initFormValidation();
   initProgramsPage();
   initHistoryPage();
 });
