@@ -271,9 +271,20 @@ html[data-theme="dark"] .masthead {
 .masthead-right .date-badge { font-size: 11px; color: var(--ink-soft); letter-spacing: 0.05em; }
 .masthead-right .streak { font-size: 11px; color: var(--ink-soft); letter-spacing: 0.05em; }
 .masthead-right .streak strong { color: var(--iron-red); font-weight: 700; }
+.mobile-toggle{ display:none; width:32px; height:32px; border-radius:8px; border:1px solid var(--line); background:var(--surface); color:var(--ink); cursor:pointer; place-items:center; font-size:16px; }
+.mobile-nav{ display:none; position:absolute; top:calc(100% + 8px); left:12px; right:12px; background:var(--surface); border:1px solid var(--line); border-radius:12px; padding:8px; box-shadow:var(--shadow-md); flex-direction:column; gap:4px; z-index:999; }
+.mobile-nav.open{ display:flex; }
+.mobile-nav a{ padding:10px 12px; border-radius:8px; text-decoration:none; color:var(--ink-soft); font-size:13px; }
+.mobile-nav a:hover{ background:var(--hover); color:var(--ink); }
 @media (max-width: 960px) {
   .masthead-center { display: none; }
   .masthead-right .date-badge, .masthead-right .streak { display: none; }
+  .mobile-toggle{ display:grid; }
+  .masthead{ position:relative; }
+}
+@media(max-width:640px){
+  .log-sheet, .pr-sheet, #prSheet{ display:block; overflow-x:auto; white-space:nowrap; -webkit-overflow-scrolling:touch; }
+  .log-sheet td, .pr-sheet td{ white-space:nowrap; }
 }
 
 /* ============================================
@@ -525,6 +536,9 @@ main.content {
   border: 1px solid var(--iron-red); padding: 3px 7px; border-radius: 20px;
   letter-spacing: 0.06em; background: var(--iron-red-soft);
 }
+button.session-tag{ cursor:pointer; transition: transform 0.12s ease, background 0.12s ease, box-shadow 0.12s ease; }
+button.session-tag:hover{ background:var(--surface); box-shadow:0 2px 8px var(--iron-red-glow); transform:translateY(-1px); }
+button.session-tag:active{ transform:translateY(0); }
 .adherence { font-size: 12px; color: var(--ink-soft); }
 .adherence #adherencePct { color: var(--iron-red); font-weight: 700; }
 

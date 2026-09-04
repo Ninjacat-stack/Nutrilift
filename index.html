@@ -39,6 +39,10 @@
       <a href="history.html">History</a>
       <a href="#pricing">Pricing</a>
     </nav>
+    <button type="button" id="mobileNavToggle" class="mobile-toggle" aria-label="Toggle navigation" aria-expanded="false" aria-controls="mobileNav">☰</button>
+    <nav id="mobileNav" class="mobile-nav" aria-hidden="true" aria-label="Mobile">
+      <a href="#log">Log</a><a href="#stack">Stack</a><a href="#week">Week</a><a href="programs.html">Programs</a><a href="history.html">History</a><a href="#pricing">Pricing</a>
+    </nav>
     <div class="masthead-right">
       <span class="date-badge mono" id="dateBadge"></span>
       <span class="streak">STREAK <strong class="mono" id="streakCount">0</strong> DAYS</span>
@@ -148,7 +152,7 @@
       <section class="panel session-panel" id="log">
         <div class="panel-head">
           <h2>Today's Session</h2>
-          <span class="session-tag">PUSH DAY</span>
+          <button type="button" class="session-tag" id="sessionTag" aria-label="Change session — current Push Day" title="Click to switch Push → Pull → Legs">PUSH DAY</button>
         </div>
 
         <div class="barbell" id="barbell">
@@ -206,7 +210,7 @@
           <span class="mono" style="font-size:10px; color:var(--muted); align-self:center;">Click text to edit · saved locally</span>
         </div>
         <div class="panel-foot mono">
-          <span>Next up: Pull Day · Deadlifts</span><a href="programs.html">Swap program →</a>
+          <span id="nextUp">Next up: Pull Day · Deadlifts</span><a href="programs.html">Swap program →</a>
         </div>
       </section>
 
@@ -548,7 +552,7 @@
         <span class="footer-brand">NUTRILIFT<span>.</span></span>
         <p>Logged, not guessed. Training & stack log for the 5am crew. No ads, no supplement store, just the log.</p>
         <div class="footer-social mono">
-          <a href="#">Instagram</a><a href="#">X</a><a href="#">YouTube</a>
+          <a href="#" data-toast="Instagram @nutrilift — coming soon">Instagram</a><a href="#" data-toast="X @nutrilift — coming soon">X</a><a href="#" data-toast="YouTube — coming soon">YouTube</a>
         </div>
       </div>
       <div class="footer-col">
@@ -557,7 +561,7 @@
       </div>
       <div class="footer-col">
         <span class="mono footer-title">Resources</span>
-        <a href="#method">The Method</a><a href="#week">This Week</a><a href="#faq">FAQ</a><a href="#">Changelog</a>
+        <a href="#method">The Method</a><a href="#week">This Week</a><a href="#faq">FAQ</a><a href="#" data-toast="Changelog — coming soon">Changelog</a>
       </div>
       <div class="footer-col">
         <span class="mono footer-title">Stay in the loop</span>
