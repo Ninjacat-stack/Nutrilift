@@ -161,6 +161,7 @@ function initDateAndStreak() {
     const streak = computeStreak(data);
     streakEl.textContent = streak;
   }
+  const y=document.getElementById("footerYear"); if(y) y.textContent=new Date().getFullYear();
   updateHeroMetrics();
 }
 function updateHeroMetrics(){

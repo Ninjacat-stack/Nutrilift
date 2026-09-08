@@ -28,6 +28,6 @@
     </div>
     <p class="mono" style="font-size:11px; color:var(--muted); margin-top:18px;">If you typed the URL, check spelling. Route: <code id="badRoute" style="background:var(--paper); padding:2px 6px; border-radius:4px; border:1px solid var(--line);"></code></p>
   </main>
-  <script>document.getElementById("badRoute").textContent=location.pathname; document.getElementById("themeToggle")?.addEventListener("click",()=>{const c=document.documentElement.getAttribute("data-theme");const n=c==="dark"?"light":"dark";document.documentElement.setAttribute("data-theme",n);try{const s=JSON.parse(localStorage.getItem("nutrilift:v1")||"{}");s.theme=n;localStorage.setItem("nutrilift:v1",JSON.stringify(s));}catch(e){}});</script>
+  <script>document.getElementById("badRoute").textContent=location.pathname; const fy=document.getElementById("footerYear"); if(fy) fy.textContent=new Date().getFullYear(); document.getElementById("themeToggle")?.addEventListener("click",()=>{const c=document.documentElement.getAttribute("data-theme");const n=c==="dark"?"light":"dark";document.documentElement.setAttribute("data-theme",n);try{const s=JSON.parse(localStorage.getItem("nutrilift:v1")||"{}");s.theme=n;localStorage.setItem("nutrilift:v1",JSON.stringify(s));}catch(e){}});</script>
 </body>
 </html>
