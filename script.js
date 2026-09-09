@@ -134,22 +134,17 @@ function initThemeToggle() {
 function initHeaderShrink() {
   const header = document.querySelector(".masthead");
   if (!header) return;
-  const ADD_THRESHOLD = 60;
-  const REMOVE_THRESHOLD = 20;
-  let isScrolled = false;
-
-  const onScroll = () => {
+  const ADD_THRESHOLD = 60, REMOVE_THRESHOLD = 20;
+  let isScrolled = false, ticking = false;
+  const update = () => {
     const y = window.scrollY;
-    if (!isScrolled && y > ADD_THRESHOLD) {
-      isScrolled = true;
-      header.classList.add("is-scrolled");
-    } else if (isScrolled && y < REMOVE_THRESHOLD) {
-      isScrolled = false;
-      header.classList.remove("is-scrolled");
-    }
+    if (!isScrolled && y > ADD_THRESHOLD) { isScrolled = true; header.classList.add("is-scrolled"); }
+    else if (isScrolled && y < REMOVE_THRESHOLD) { isScrolled = false; header.classList.remove("is-scrolled"); }
+    ticking = false;
   };
+  const onScroll = () => { if (!ticking) { requestAnimationFrame(update); ticking = true; } };
   window.addEventListener("scroll", onScroll, { passive: true });
-  onScroll();
+  update();
 }
 
 function initDateAndStreak() {
@@ -560,6 +555,36 @@ function initTilt3D() {
   });
 }
 
+// — Directional bow — rotates opposite to movement, double-click shoots opposite —
+function initBowShoot(){
+  if(window.matchMedia('(pointer: coarse)').matches || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  const bow=document.createElement('div'); bow.id='bowCursor'; bow.setAttribute('aria-hidden','true');
+  bow.innerHTML=`<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32' width='34' height='34'><path d='M9 3 Q22 16 9 29' stroke='#C81E3D' stroke-width='2.2' fill='none' stroke-linecap='round' stroke-linejoin='round'/><line x1='9' y1='6' x2='9' y2='26' stroke='#211714' stroke-width='0.9' opacity='0.18' stroke-dasharray='2 2'/><g transform='translate(9 14)'><line x1='0' y1='2' x2='15' y2='2' stroke='#5B4C47' stroke-width='1.5' stroke-linecap='round'/><path d='M15 2 L11 0 L11 4 Z' fill='#211714' stroke='#211714' stroke-width='0.6' stroke-linejoin='round'/><path d='M0 0 L3 2 L0 4' fill='none' stroke='#9A8A83' stroke-width='1.1' opacity='0.9' stroke-linecap='round' stroke-linejoin='round'/></g></svg>`;
+  document.body.appendChild(bow); document.documentElement.classList.add('bow-active');
+  let x=innerWidth/2, y=innerHeight/2, lastX=x, lastY=y, angle=0, shootAngle=0, ticking=false;
+  const upd=()=>{ bow.style.left=x+'px'; bow.style.top=y+'px'; bow.style.transform=`translate(-50%,-50%) rotate(${angle}deg)`; ticking=false; };
+  document.addEventListener('mousemove', e=>{
+    const dx=e.clientX-lastX, dy=e.clientY-lastY;
+    if(Math.hypot(dx,dy)>1.5){ const mv=Math.atan2(dy,dx)*180/Math.PI; shootAngle=(mv+180)%360; if(shootAngle>180) shootAngle-=360; angle=shootAngle; }
+    x=e.clientX; y=e.clientY; lastX=e.clientX; lastY=e.clientY; bow.classList.add('show');
+    if(!ticking){ requestAnimationFrame(upd); ticking=true; }
+  }, {passive:true});
+  document.addEventListener('mouseleave', ()=> bow.classList.remove('show'));
+  document.addEventListener('mouseenter', ()=> bow.classList.add('show'));
+  document.addEventListener('dblclick', e=>{
+    e.preventDefault();
+    const el=document.createElement('div'); el.className='shot-arrow';
+    el.innerHTML=`<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 28 12' width='28' height='12'><line x1='2' y1='6' x2='20' y2='6' stroke='#211714' stroke-width='1.6' stroke-linecap='round'/><path d='M20 6 L14 2 L14 10 Z' fill='#C81E3D' stroke='#8F2438' stroke-width='0.7' stroke-linejoin='round'/><path d='M2 3 L6 6 L2 9' fill='none' stroke='#9A8A83' stroke-width='1' stroke-linecap='round' stroke-linejoin='round'/></svg>`;
+    el.style.left=(x-14)+'px'; el.style.top=(y-7)+'px'; el.style.transform=`rotate(${shootAngle}deg)`; el.style.opacity='1';
+    document.body.appendChild(el); void el.offsetWidth;
+    requestAnimationFrame(()=> requestAnimationFrame(()=>{
+      const rad=shootAngle*Math.PI/180, dist=520; const tx=Math.cos(rad)*dist, ty=Math.sin(rad)*dist;
+      el.style.transform=`translate(${tx}px, ${ty}px) rotate(${shootAngle}deg)`; el.style.opacity='0';
+    }));
+    setTimeout(()=> el.remove(), 580);
+    bow.style.transform=`translate(-50%,-50%) rotate(${angle}deg) scale(0.92)`; setTimeout(()=> bow.style.transform=`translate(-50%,-50%) rotate(${angle}deg) scale(1)`,120);
+  });
+}
 // — Shortcuts — t: theme, ?: help
 function initShortcuts(){
   document.addEventListener("keydown", e=>{
@@ -832,6 +857,7 @@ document.addEventListener("DOMContentLoaded", () => {
   initCursorGlow();
   initToasts();
   initShortcuts();
+  initBowShoot();
   initActiveNav();
   initMobileNav();
   initFormValidation();
