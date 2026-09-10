@@ -127,7 +127,8 @@ html.bow-active a, html.bow-active button, html.bow-active [role="button"], html
 input, textarea, [contenteditable="true"]{ cursor: text !important; }
 html.bow-active input, html.bow-active textarea, html.bow-active [contenteditable="true"]{ cursor: text !important; }
 /* shot arrow — rotates with shoot direction */
-.shot-arrow{ position:fixed; width:30px; height:14px; pointer-events:none; z-index:9998; will-change:transform, opacity; filter:drop-shadow(0 1px 3px rgba(0,0,0,0.18)); transition: transform 0.52s cubic-bezier(0.18,0.68,0.2,1), opacity 0.36s ease 0.14s; }
+.shot-arrow{ position:fixed; width:30px; height:14px; pointer-events:none; z-index:9998; will-change:transform, opacity; filter:drop-shadow(0 1px 3px rgba(0,0,0,0.18)); }
+.arrow-hit{ outline:2px solid var(--iron-red) !important; outline-offset:2px; transform:scale(0.97); box-shadow:0 0 0 6px var(--iron-red-glow) !important; }
 @media (pointer: coarse){ #bowCursor{ display:none !important; } html.bow-active, html.bow-active *{ cursor: auto !important; } .shot-arrow{ display:none !important; } }
 @media (prefers-reduced-motion: reduce){ #bowCursor{ display:none !important; } html.bow-active{ cursor: auto !important; } html.bow-active a, html.bow-active button{ cursor: pointer !important; } .shot-arrow{ display:none !important; } }
 /* legacy home-cursor compat */

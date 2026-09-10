@@ -555,7 +555,7 @@ function initTilt3D() {
   });
 }
 
-// — Directional bow — rotates opposite to movement, double-click shoots opposite —
+// — Directional bow + triple-click physics — shoots opposite to movement, hits button —
 function initBowShoot(){
   if(window.matchMedia('(pointer: coarse)').matches || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
   const bow=document.createElement('div'); bow.id='bowCursor'; bow.setAttribute('aria-hidden','true');
@@ -571,18 +571,45 @@ function initBowShoot(){
   }, {passive:true});
   document.addEventListener('mouseleave', ()=> bow.classList.remove('show'));
   document.addEventListener('mouseenter', ()=> bow.classList.add('show'));
-  document.addEventListener('dblclick', e=>{
+  // triple-click (e.detail===3) fires with physics and button hit
+  document.addEventListener('click', e=>{
+    if(e.detail!==3) return;
+    if(e.target.closest('input, textarea, [contenteditable="true"]')) return;
     e.preventDefault();
+    const startX=x, startY=y, ang=shootAngle;
     const el=document.createElement('div'); el.className='shot-arrow';
     el.innerHTML=`<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 28 12' width='28' height='12'><line x1='2' y1='6' x2='20' y2='6' stroke='#211714' stroke-width='1.6' stroke-linecap='round'/><path d='M20 6 L14 2 L14 10 Z' fill='#C81E3D' stroke='#8F2438' stroke-width='0.7' stroke-linejoin='round'/><path d='M2 3 L6 6 L2 9' fill='none' stroke='#9A8A83' stroke-width='1' stroke-linecap='round' stroke-linejoin='round'/></svg>`;
-    el.style.left=(x-14)+'px'; el.style.top=(y-7)+'px'; el.style.transform=`rotate(${shootAngle}deg)`; el.style.opacity='1';
-    document.body.appendChild(el); void el.offsetWidth;
-    requestAnimationFrame(()=> requestAnimationFrame(()=>{
-      const rad=shootAngle*Math.PI/180, dist=520; const tx=Math.cos(rad)*dist, ty=Math.sin(rad)*dist;
-      el.style.transform=`translate(${tx}px, ${ty}px) rotate(${shootAngle}deg)`; el.style.opacity='0';
-    }));
-    setTimeout(()=> el.remove(), 580);
-    bow.style.transform=`translate(-50%,-50%) rotate(${angle}deg) scale(0.92)`; setTimeout(()=> bow.style.transform=`translate(-50%,-50%) rotate(${angle}deg) scale(1)`,120);
+    el.style.left=(startX-14)+'px'; el.style.top=(startY-7)+'px'; el.style.transform=`rotate(${ang}deg)`; el.style.opacity='1';
+    document.body.appendChild(el);
+    // physics: velocity + gravity
+    const rad=ang*Math.PI/180; let vx=Math.cos(rad)*16, vy=Math.sin(rad)*16; const g=0.38; let px=startX, py=startY;
+    const btns=Array.from(document.querySelectorAll('button, a.btn, [role="button"]')).filter(b=> !b.closest('#bowCursor') && b.offsetParent!==null && !b.disabled);
+    let hit=null, raf=null;
+    const step=()=>{
+      px+=vx; py+=vy; vy+=g;
+      const curAng=Math.atan2(vy,vx)*180/Math.PI;
+      el.style.left=(px-14)+'px'; el.style.top=(py-7)+'px'; el.style.transform=`rotate(${curAng}deg)`;
+      // bounds check
+      if(px<-40||px>innerWidth+40||py>innerHeight+40){ el.remove(); return; }
+      // hit test: arrow tip (px+14*cos, py+7*sin?) approx px,py is center, check tip
+      const tipX=px+14*Math.cos(curAng*Math.PI/180), tipY=py+Math.sin(curAng*Math.PI/180)*7;
+      for(const b of btns){
+        const r=b.getBoundingClientRect();
+        if(tipX>=r.left && tipX<=r.right && tipY>=r.top && tipY<=r.bottom){ hit=b; break; }
+      }
+      if(hit){
+        hit.classList.add('arrow-hit'); setTimeout(()=> hit.classList.remove('arrow-hit'), 400);
+        hit.click();
+        window.NutriliftToast&&window.NutriliftToast(`Hit — ${hit.textContent.trim().slice(0,22)} clicked`);
+        el.style.transform=`rotate(${curAng}deg) scale(1.15)`; el.style.opacity='0';
+        setTimeout(()=> el.remove(), 220);
+        return;
+      }
+      raf=requestAnimationFrame(step);
+    };
+    raf=requestAnimationFrame(step);
+    setTimeout(()=>{ if(el.parentNode){ cancelAnimationFrame(raf); el.style.opacity='0'; setTimeout(()=> el.remove(), 200); } }, 1800);
+    bow.style.transform=`translate(-50%,-50%) rotate(${angle}deg) scale(0.88)`; setTimeout(()=> bow.style.transform=`translate(-50%,-50%) rotate(${angle}deg) scale(1)`,140);
   });
 }
 // — Shortcuts — t: theme, ?: help
