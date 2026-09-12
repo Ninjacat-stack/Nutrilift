@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Nutrilift Showcase — cinematic red + black product tour. Session, Stack and Fuel in depth.">
+  <meta name="theme-color" content="#0B0606">
+  <title>Showcase — Nutrilift Pro</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect x='8' y='8' width='16' height='16' fill='%23C81E3D' transform='rotate(45 16 16)'/%3E%3C/svg%3E">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  <script>
+    (function(){try{var s=JSON.parse(localStorage.getItem("nutrilift:v1")||"{}");var t=s.theme||(window.matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light");document.documentElement.setAttribute("data-theme",t);}catch(e){}})();
+  </script>
+  <script type="importmap">
+    { "imports": { "three": "https://unpkg.com/three@0.160.0/build/three.module.js" } }
+  </script>
+</head>
+<body>
+  <a href="#showcaseTop" class="skip-link">Skip to content</a>
+  <div class="scene-bg" aria-hidden="true"><div class="scene-grid"></div><div class="orb orb-1"></div></div>
+
+  <header class="masthead">
+    <div class="masthead-left">
+      <a href="index.html" class="wordmark"><span class="mark"></span>NUTRILIFT<span class="dot">.</span></a>
+    </div>
+    <nav class="masthead-center" aria-label="Primary">
+      <a href="index.html#log">Log</a>
+      <a href="index.html#stack">Stack</a>
+      <a href="index.html#week">Week</a>
+      <a href="programs.html">Programs</a>
+      <a href="history.html">History</a>
+      <a href="showcase.html" class="active">Showcase</a>
+    </nav>
+    <button type="button" id="mobileNavToggle" class="mobile-toggle" aria-label="Toggle navigation" aria-expanded="false" aria-controls="mobileNav">☰</button>
+    <nav id="mobileNav" class="mobile-nav" aria-hidden="true" aria-label="Mobile">
+      <a href="index.html#log">Log</a><a href="index.html#stack">Stack</a><a href="index.html#week">Week</a><a href="programs.html">Programs</a><a href="history.html">History</a><a href="showcase.html">Showcase</a>
+    </nav>
+    <div class="masthead-right">
+      <span class="date-badge mono" id="dateBadge"></span>
+      <span class="streak">STREAK <strong class="mono" id="streakCount">0</strong> DAYS</span>
+      <a href="index.html#log" class="btn btn-sm btn-primary hide-mobile">Open Log</a>
+      <button id="themeToggle" class="mode-switch" aria-pressed="false" aria-label="Switch to dark mode">
+        <span class="switch-track"><span class="switch-thumb"></span></span>
+        <span class="switch-label">DARK</span>
+      </button>
+    </div>
+  </header>
+
+  <main id="showcaseTop" class="showcase">
+    <!-- 01 · HERO : full-screen cinematic -->
+    <section class="show-hero" aria-label="Nutrilift showcase intro">
+      <div class="show-hero-bg" aria-hidden="true"><div class="show-hero-grid"></div><div class="show-hero-glow"></div></div>
+      <p class="mono show-eyebrow" id="showHeroEyebrow">NUTRILIFT PRO — CINEMATIC TOUR · RED + BLACK</p>
+      <h1 class="show-title" id="showHeroTitle">STRENGTH,<br><span>IN DEPTH.</span></h1>
+      <p class="show-sub" id="showHeroSub">One object. Three chapters. Scroll — the plate rotates, scales and lights up as each pillar comes into focus.</p>
+      <div class="show-hero-actions">
+        <a href="index.html#log" class="btn btn-primary btn-lg">Start Logging →</a>
+        <a href="programs.html" class="btn btn-ghost btn-lg show-ghost-dark">View Programs</a>
+      </div>
+      <dl class="show-live" aria-label="Your live stats">
+        <div><dt class="mono">STREAK</dt><dd class="mono" id="showStatStreak">0 days</dd></div>
+        <div><dt class="mono">SESSIONS</dt><dd class="mono" id="showStatSessions">0 logged</dd></div>
+        <div><dt class="mono">ADHERENCE</dt><dd class="mono" id="showStatAdherence">0%</dd></div>
+      </dl>
+      <p class="mono show-scroll-hint" aria-hidden="true">SCROLL ↓</p>
+    </section>
+
+    <!-- 02-04 · STICKY STORY : pinned 3D + scrolling chapters -->
+    <div class="show-story" id="showStory">
+      <div class="show-canvas" aria-hidden="true">
+        <div class="show-progress"><span id="showProgress"></span></div>
+        <canvas id="webgl-canvas" aria-hidden="true"></canvas>
+        <div class="show-bg-grid"></div>
+        <div class="show-glow show-glow-a" id="showGlowA"></div>
+        <div class="show-glow show-glow-b" id="showGlowB"></div>
+        <div class="show-dots" aria-hidden="true"><span class="show-dot is-on" data-dot="0"></span><span class="show-dot" data-dot="1"></span><span class="show-dot" data-dot="2"></span></div>
+        <div class="show-scene">
+          <div class="show-3d" id="showObject" role="img" aria-label="3D iron plate reacting to scroll">
+            <span class="show-ring show-ring-1"></span>
+            <span class="show-ring show-ring-2"></span>
+            <span class="show-ring show-ring-3"></span>
+            <span class="show-core"><i></i></span>
+            <span class="show-chip mono" id="showChip">PUSH · PULL · LEGS</span>
+          </div>
+        </div>
+      </div>
+      <div class="show-steps">
+        <article class="show-step" data-phase="0">
+          <div class="show-card">
+            <p class="mono show-kicker">01 — SESSION</p>
+            <h2>Every rep<br>has weight.</h2>
+            <p>Check a set. The bar loads, the streak ticks, history writes itself. No swipes, no clutter.</p>
+            <ul class="mono"><li>→ Barbell loads live</li><li>→ Push / Pull / Legs switch</li><li>→ 90-day history + CSV</li></ul>
+            <a href="index.html#log" class="btn btn-primary btn-sm">Open Today's Session →</a>
+          </div>
+        </article>
+        <article class="show-step" data-phase="1">
+          <div class="show-card">
+            <p class="mono show-kicker">02 — STACK</p>
+            <h2>Adherence<br>you can see.</h2>
+            <p>One tap per supplement. The plate glows hotter as adherence climbs toward 100%.</p>
+            <ul class="mono"><li>→ One-tap pop</li><li>→ AM / Pre / Post / PM</li><li>→ Live adherence %</li></ul>
+            <a href="index.html#stack" class="btn btn-primary btn-sm">Open Today's Stack →</a>
+          </div>
+        </article>
+        <article class="show-step" data-phase="2">
+          <div class="show-card">
+            <p class="mono show-kicker">03 — FUEL</p>
+            <h2>Fuel without<br>friction.</h2>
+            <p>Protein, carbs, fats, kcal as bars — not a second job. Over target? It burns orange.</p>
+            <ul class="mono"><li>→ 1-tap meal presets</li><li>→ Auto kcal estimate</li><li>→ Over-target glow</li></ul>
+            <a href="index.html#fuelPanel" class="btn btn-primary btn-sm">Log Fuel →</a>
+          </div>
+        </article>
+      </div>
+    </div>
+
+    <!-- 05 · MARQUEE + SPECS : kinetic strip + live counters -->
+    <div class="show-marquee" aria-hidden="true"><div class="show-marquee-track"><span>LOGGED · NOT GUESSED · RED · BLACK · PUSH · PULL · LEGS ·&nbsp;</span><span>LOGGED · NOT GUESSED · RED · BLACK · PUSH · PULL · LEGS ·&nbsp;</span></div></div>
+    <section class="show-specs" aria-label="Live proof">
+      <div class="show-spec"><strong class="mono" id="specLifts" data-count>0</strong><span class="mono">LIFTS LOGGED</span></div>
+      <div class="show-spec"><strong class="mono" id="specStack" data-count>0</strong><span class="mono">STACK TAKEN</span></div>
+      <div class="show-spec"><strong class="mono" id="specDays" data-count>0</strong><span class="mono">DAYS TRACKED</span></div>
+      <div class="show-spec"><strong class="mono" id="specStreak" data-count>0</strong><span class="mono">DAY STREAK</span></div>
+    </section>
+
+    <!-- 06 · FEATURES : rendered from SHOWCASE_DATA, not hardcoded -->
+    <section class="show-features" aria-label="Showcase features">
+      <div class="section-head show-head">
+        <span class="mono eyebrow">WHY IT FEELS PREMIUM</span>
+        <h2>Built like product.<br>Fast like utility.</h2>
+        <p>Same design system, same fonts, same buttons — pushed into cinematic red + black.</p>
+      </div>
+      <div class="show-feature-grid" id="showFeatures"></div>
+    </section>
+
+    <!-- 06 · FINAL CTA : red + black -->
+    <section class="show-cta" aria-label="Get started">
+      <div class="show-cta-inner">
+        <p class="mono show-kicker">FINAL REP</p>
+        <h2>Keep the streak.<br><span>Lift tonight.</span></h2>
+        <p class="mono show-cta-sub">Local-first. No account. Your data never leaves this browser.</p>
+        <div class="cta-actions">
+          <a href="index.html#log" class="btn btn-primary btn-lg">Log Today's Session →</a>
+          <a href="history.html" class="btn btn-ghost btn-lg show-ghost-dark">View 90-Day History</a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="footer-grid">
+      <div class="footer-brand-col">
+        <span class="footer-brand">NUTRILIFT<span>.</span></span>
+        <p>Showcase tour — same app, cinematic cut. All stats on this page are live from your browser.</p>
+        <div class="footer-social mono"><a href="index.html">Home</a><a href="programs.html">Programs</a><a href="history.html">History</a><a href="showcase.html">Showcase</a></div>
+      </div>
+      <div class="footer-col"><span class="mono footer-title">Product</span><a href="index.html#log">Today's Log</a><a href="index.html#stack">Stack</a><a href="programs.html">Programs</a><a href="history.html">History</a></div>
+      <div class="footer-col"><span class="mono footer-title">Tour</span><a href="#showcaseTop">Top</a><a href="#showStory">Story</a><a href="#showFeatures">Features</a></div>
+      <div class="footer-col"><span class="mono footer-title">Info</span><p class="mono footer-note">Red + black cinematic theme. Respects reduced-motion + mobile.</p></div>
+    </div>
+    <div class="footer-bottom mono"><span>© <span id="footerYear">2026</span> Nutrilift · Showcase.</span><span>RED · BLACK · REPEAT</span></div>
+  </footer>
+
+  <div class="show-noise" aria-hidden="true"></div>
+  <div id="showCursorGlow" aria-hidden="true"></div>
+  <div class="toast-stack" id="toastStack" aria-live="polite" aria-atomic="true"></div>
+  <script src="script.js"></script>
+  <script type="module" src="showcase-3d.js"></script>
+</body>
+</html>
