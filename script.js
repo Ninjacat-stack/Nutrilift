@@ -627,6 +627,7 @@ function initActiveNav(){
     const href=a.getAttribute("href")||""; a.classList.remove("active");
     if(href==="programs.html" && path==="programs.html") a.classList.add("active");
     else if(href==="history.html" && path==="history.html") a.classList.add("active");
+    else if(href==="showcase.html" && path==="showcase.html") a.classList.add("active");
     else if(href.startsWith("#") && path==="index.html" && location.hash===href) a.classList.add("active");
     else if(href==="index.html" && path==="index.html" && !location.hash) a.classList.remove("active");
   });
@@ -737,6 +738,85 @@ function initHistoryPage(){
   const doClear=()=>{ if(!confirm("Clear 90-day history?")) return; data.days={}; saveStorage(data); location.reload(); };
   ["exportBtn","footerExport"].forEach(id=>{ const e=document.getElementById(id); if(e) e.addEventListener("click",e=>{e.preventDefault(); doExport();}); });
   ["clearBtn","footerClear"].forEach(id=>{ const e=document.getElementById(id); if(e) e.addEventListener("click",e=>{e.preventDefault(); doClear();}); });
+}
+
+// — Showcase — single source of truth (edit here, page updates; no hardcoded duplicates) —
+const SHOWCASE_DATA = {
+  hero: { eyebrow: "NUTRILIFT PRO — CINEMATIC TOUR · RED + BLACK", titleA: "STRENGTH,", titleB: "IN DEPTH.", sub: "One object. Three chapters. Scroll — the plate rotates, scales and lights up as each pillar comes into focus." },
+  features: [
+    { icon: "◈", title: "Session engine", body: "Editable lifts, Push / Pull / Legs switch, barbell that loads live.", meta: "LOCAL · INSTANT" },
+    { icon: "⬢", title: "Stack ritual", body: "One-tap adherence with AM / Pre / Post / PM timing.", meta: "90-DAY CURVE" },
+    { icon: "⬣", title: "Fuel bars", body: "Protein, carbs, fats, kcal with presets and over-target glow.", meta: "PRESETS · CSV" },
+    { icon: "◉", title: "90-day proof", body: "Calendar, recent logs and breakdown — all exportable.", meta: "HISTORY PAGE" },
+    { icon: "⬔", title: "Programs", body: "Six splits with filters and detail modal. Set one active.", meta: "6 SPLITS" },
+    { icon: "✦", title: "Private by design", body: "No account, no cloud. Everything stays in this browser.", meta: "LOCALSTORAGE" }
+  ]
+};
+// Apple-style scroll story: sticky canvas + rAF scroll progress → 3D transform (transform/opacity only)
+function initShowcase(){
+  const story=document.getElementById("showStory"); if(!story) return;
+  const obj=document.getElementById("showObject"), glowA=document.getElementById("showGlowA"), glowB=document.getElementById("showGlowB"), bar=document.getElementById("showProgress");
+  const steps=Array.from(story.querySelectorAll(".show-step"));
+  const reduced=window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  // 1) content from single source (easy to change later)
+  try{
+    const hb=document.getElementById("showHeroEyebrow"); if(hb) hb.textContent=SHOWCASE_DATA.hero.eyebrow;
+    const ht=document.getElementById("showHeroTitle"); if(ht) ht.innerHTML=escapeHTML(SHOWCASE_DATA.hero.titleA)+"<br><span>"+escapeHTML(SHOWCASE_DATA.hero.titleB)+"</span>";
+    const hs=document.getElementById("showHeroSub"); if(hs) hs.textContent=SHOWCASE_DATA.hero.sub;
+    const grid=document.getElementById("showFeatures");
+    if(grid){ grid.innerHTML=SHOWCASE_DATA.features.map(f=>`<article class="show-feature-card"><div class="show-feature-icon">${escapeHTML(f.icon)}</div><h3>${escapeHTML(f.title)}</h3><p>${escapeHTML(f.body)}</p><span class="mono">${escapeHTML(f.meta)}</span></article>`).join(""); }
+  }catch(e){ console.error("Showcase content failed", e); }
+  // 2) live stats from real storage (never hardcoded)
+  try{
+    const data=loadStorage(), days=data.days||{};
+    let taken=0, possible=0; Object.values(days).forEach(d=>{ if(d.stack){ taken+=d.stack.filter(Boolean).length; possible+=d.stack.length; }});
+    const set=(id,v)=>{ const el=document.getElementById(id); if(el) el.textContent=v; };
+    set("showStatStreak", computeStreak(data)+" days");
+    set("showStatSessions", Object.keys(days).length+" logged");
+    set("showStatAdherence", (possible?Math.round(taken/possible*100):0)+"%");
+  }catch(e){ console.error("Showcase stats failed", e); }
+  if(reduced){ steps.forEach(s=> s.classList.add("is-visible")); if(bar) bar.style.width="100%"; return; }
+  // 3) step reveals (IntersectionObserver, no scroll jank)
+  let io=null;
+  try{
+    io=new IntersectionObserver(entries=>{
+      entries.forEach(en=>{ if(en.isIntersecting){ en.target.classList.add("is-visible"); } });
+    }, { rootMargin:"-38% 0px -38% 0px", threshold:0.1 });
+    steps.forEach(s=> io.observe(s));
+  }catch(e){ steps.forEach(s=> s.classList.add("is-visible")); }
+  // 4) scroll progress → 3D (single rAF-throttled listener, transform/opacity only)
+  let ticking=false, rafId=0;
+  const isMobile=()=> window.innerWidth<860 || window.matchMedia("(pointer: coarse)").matches;
+  const render=()=>{
+    ticking=false;
+    if(!story.isConnected){ cleanup(); return; }
+    const rect=story.getBoundingClientRect();
+    const total=Math.max(1, story.offsetHeight - window.innerHeight);
+    const p=Math.min(1, Math.max(0, -rect.top/total));
+    if(bar) bar.style.width=(p*100).toFixed(1)+"%";
+    if(obj){
+      const m=isMobile();
+      const ry=(p*380).toFixed(1), rx=(12-p*26).toFixed(1);
+      const s=(m? 0.9+p*0.25 : 1+p*0.42).toFixed(3);
+      const tx=((p-0.5)*(m?24:70)).toFixed(1), ty=(-p*(m?10:26)).toFixed(1);
+      obj.style.transform=`rotateX(${rx}deg) rotateY(${ry}deg) scale(${s}) translate3d(${tx}px, ${ty}px, 0)`;
+    }
+    if(glowA) glowA.style.transform=`translate(${(p-0.5)*60}px, ${-p*40}px) scale(${1+p*0.5})`;
+    if(glowB) glowB.style.transform=`translate(${(0.5-p)*90}px, ${p*60}px) scale(${1+p*0.7})`;
+    if(glowA) glowA.style.opacity=0.55+p*0.45;
+  };
+  const onScroll=()=>{ if(!ticking){ ticking=true; rafId=requestAnimationFrame(render); } };
+  const onResize=onScroll;
+  window.addEventListener("scroll", onScroll, { passive:true });
+  window.addEventListener("resize", onResize);
+  render();
+  function cleanup(){
+    window.removeEventListener("scroll", onScroll);
+    window.removeEventListener("resize", onResize);
+    if(rafId) cancelAnimationFrame(rafId);
+    try{ if(io) io.disconnect(); }catch(e){}
+  }
+  window.addEventListener("pagehide", cleanup, { once:true });
 }
 
 // — Programs page: filters + modal —
@@ -890,4 +970,5 @@ document.addEventListener("DOMContentLoaded", () => {
   initFormValidation();
   initProgramsPage();
   initHistoryPage();
+  initShowcase();
 });
