@@ -15,7 +15,10 @@
     (function(){try{var s=JSON.parse(localStorage.getItem("nutrilift:v1")||"{}");var t=s.theme||(window.matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light");document.documentElement.setAttribute("data-theme",t);}catch(e){}})();
   </script>
   <script type="importmap">
-    { "imports": { "three": "https://unpkg.com/three@0.160.0/build/three.module.js" } }
+    { "imports": {
+      "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+      "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+    } }
   </script>
 </head>
 <body>
@@ -76,6 +79,10 @@
         <div class="show-bg-grid"></div>
         <div class="show-glow show-glow-a" id="showGlowA"></div>
         <div class="show-glow show-glow-b" id="showGlowB"></div>
+        <div class="show-hud show-hud-top mono" aria-hidden="true"><span>NL / 001</span><span>SCROLL SYSTEM ONLINE</span></div>
+        <div class="show-hud show-hud-bottom mono" aria-hidden="true"><span id="showPhaseLabel">01 / SESSION</span><span>LIVE DATA · LOCAL</span></div>
+        <div class="show-scanline" aria-hidden="true"></div>
+        <div class="show-lensflare" aria-hidden="true"></div>
         <div class="show-dots" aria-hidden="true"><span class="show-dot is-on" data-dot="0"></span><span class="show-dot" data-dot="1"></span><span class="show-dot" data-dot="2"></span></div>
         <div class="show-scene">
           <div class="show-3d" id="showObject" role="img" aria-label="3D iron plate reacting to scroll">
@@ -88,7 +95,7 @@
         </div>
       </div>
       <div class="show-steps">
-        <article class="show-step" data-phase="0">
+        <article class="show-step" data-phase="0" data-idx="01">
           <div class="show-card">
             <p class="mono show-kicker">01 — SESSION</p>
             <h2>Every rep<br>has weight.</h2>
@@ -97,7 +104,7 @@
             <a href="index.html#log" class="btn btn-primary btn-sm">Open Today's Session →</a>
           </div>
         </article>
-        <article class="show-step" data-phase="1">
+        <article class="show-step" data-phase="1" data-idx="02">
           <div class="show-card">
             <p class="mono show-kicker">02 — STACK</p>
             <h2>Adherence<br>you can see.</h2>
@@ -106,7 +113,7 @@
             <a href="index.html#stack" class="btn btn-primary btn-sm">Open Today's Stack →</a>
           </div>
         </article>
-        <article class="show-step" data-phase="2">
+        <article class="show-step" data-phase="2" data-idx="03">
           <div class="show-card">
             <p class="mono show-kicker">03 — FUEL</p>
             <h2>Fuel without<br>friction.</h2>

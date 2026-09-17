@@ -766,7 +766,37 @@ function initShowcase(){
     const grid=document.getElementById("showFeatures");
     if(grid){ grid.innerHTML=SHOWCASE_DATA.features.map(f=>`<article class="show-feature-card"><div class="show-feature-icon">${escapeHTML(f.icon)}</div><h3>${escapeHTML(f.title)}</h3><p>${escapeHTML(f.body)}</p><span class="mono">${escapeHTML(f.meta)}</span></article>`).join(""); }
   }catch(e){ console.error("Showcase content failed", e); }
-  // 2) live stats from real storage (never hardcoded)
+  // 2.5) title scramble intro + hero parallax (transform/opacity only)
+  const hero=document.querySelector(".show-hero"), heroTitle=document.getElementById("showHeroTitle");
+  if(heroTitle && !reduced){
+    const html=heroTitle.innerHTML;
+    const chars="ABCDEFGHIJKLMNOPQRSTUVWXYZ#/\\%&*";
+    const target="STRENGTH, IN DEPTH.";
+    let f=0, frames=16, iv=setInterval(()=>{
+      f++;
+      if(f>=frames){ heroTitle.innerHTML=html; clearInterval(iv); return; }
+      let out="";
+      for(let i=0;i<target.length;i++){
+        if(target[i]===" ") out+=" ";
+        else out += (f/frames>Math.random()*1.4)? target[i] : chars[(Math.random()*chars.length)|0];
+      }
+      heroTitle.textContent=out;
+    }, 42);
+    window.addEventListener("pagehide", ()=>clearInterval(iv), { once:true });
+  }
+  if(hero && heroTitle && !reduced){
+    let hTick=false;
+    const hFrame=()=>{
+      hTick=false;
+      const y=Math.min(1, window.scrollY/window.innerHeight);
+      heroTitle.style.transform=`translateY(${(y*70).toFixed(1)}px)`;
+      heroTitle.style.opacity=(1-y*1.2).toFixed(2);
+      const sub=document.getElementById("showHeroSub"); if(sub) sub.style.opacity=(1-y*1.6).toFixed(2);
+    };
+    const hScroll=()=>{ if(!hTick){ hTick=true; requestAnimationFrame(hFrame); } };
+    window.addEventListener("scroll", hScroll, { passive:true });
+    window.addEventListener("pagehide", ()=>window.removeEventListener("scroll", hScroll), { once:true });
+  }
   try{
     const data=loadStorage(), days=data.days||{};
     let taken=0, possible=0; Object.values(days).forEach(d=>{ if(d.stack){ taken+=d.stack.filter(Boolean).length; possible+=d.stack.length; }});
@@ -804,6 +834,8 @@ function initShowcase(){
     if(glowA) glowA.style.transform=`translate(${(p-0.5)*60}px, ${-p*40}px) scale(${1+p*0.5})`;
     if(glowB) glowB.style.transform=`translate(${(0.5-p)*90}px, ${p*60}px) scale(${1+p*0.7})`;
     if(glowA) glowA.style.opacity=0.55+p*0.45;
+    const phaseEl=document.getElementById("showPhaseLabel");
+    if(phaseEl) phaseEl.textContent=p<0.34?"01 / SESSION":p<0.67?"02 / STACK":"03 / FUEL";
   };
   const onScroll=()=>{ if(!ticking){ ticking=true; rafId=requestAnimationFrame(render); } };
   const onResize=onScroll;
