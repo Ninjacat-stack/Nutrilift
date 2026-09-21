@@ -169,13 +169,24 @@ function updateHeroMetrics(){
   // adherence avg 90d — real
   let taken=0,possible=0; Object.values(days).forEach(d=>{ if(d.stack){ taken+=d.stack.filter(Boolean).length; possible+=d.stack.length; }});
   const adh=possible?Math.round(taken/possible*100):0; if(hStats[1]){ hStats[1].textContent=adh+"%"; }
-  // hero mini bars: last 6 days lift counts
+  // PRs tracked — real count from storage
+  const prs=data.prs||[]; if(hStats[2]){ hStats[2].textContent=String(prs.length); const l2=hStats[2].nextElementSibling; if(l2) l2.textContent = prs.length===1 ? "PR tracked" : "PRs tracked"; }
+  // hero mini bars: last 6 days lift counts (0 when missing — no fake data)
   const bars=document.querySelectorAll(".hero-mini-bars span"); if(bars.length){
-    for(let i=0;i<bars.length;i++){ const d=new Date(); d.setDate(d.getDate()-(5-i)); const k=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`; const v=days[k]; const cnt=v? (v.lifts?.filter(Boolean).length||0) : Math.round(Math.random()*2); const h=Math.max(18, Math.min(88, 18+cnt*14)); bars[i].style.setProperty("--h", h+"%"); }
+    for(let i=0;i<bars.length;i++){ const d=new Date(); d.setDate(d.getDate()-(5-i)); const k=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`; const v=days[k]; const cnt=v? (v.lifts?.filter(Boolean).length||0) : 0; const h=Math.max(6, Math.min(88, 6+cnt*16)); bars[i].style.setProperty("--h", h+"%"); }
   }
-  // hero badge from latest PR (fallback to default if no stored PRs)
-  const prs=data.prs || [{lift:"Deadlift",best:"180 kg",date:"JUL 12"}]; const badge=document.querySelector(".hero-badge strong"); const badgeSub=document.querySelector(".hero-badge span:last-child");
-  if(prs.length && badge){ const p=prs[0]; badge.textContent=`${escapeHTML(p.lift)} ${escapeHTML(p.best)}`; if(badgeSub) badgeSub.textContent=escapeHTML(p.date)+" · top PR"; }
+  // hero session label — real session
+  const sLabel=document.getElementById("heroSessionLabel");
+  if(sLabel && typeof SESSIONS!=="undefined"){ sLabel.textContent="TODAY · "+(SESSIONS[getSession()]?.label||"PUSH DAY"); }
+  // hero stack rows + progress — real defs + today's dones
+  const rows=document.querySelectorAll(".hero-stack-row");
+  const defs=loadStackDefs();
+  const today=data.days?.[todayKey()]; const dones=today?.stack||[];
+  rows.forEach((row,i)=>{ const d=defs[i]; if(!d){ row.style.display="none"; return; } row.style.display=""; const name=row.querySelector("span:first-child"); const badge=row.querySelector("span:last-child"); if(name) name.textContent=d.name; if(badge){ badge.textContent=dones[i]?"TAKEN ✓":"PENDING"; badge.className="mono "+(dones[i]?"taken":"pending"); } });
+  const sp=document.getElementById("heroStackProgress"); if(sp) sp.style.width=(possible?Math.round(taken/possible*100):0)+"%";
+  // hero badge from latest PR (empty state when no PRs)
+  const badge=document.querySelector(".hero-badge strong"); const badgeSub=document.querySelector(".hero-badge span:last-child");
+  if(badge){ if(prs.length){ const p=prs[0]; badge.textContent=`${escapeHTML(p.lift)} ${escapeHTML(p.best)}`; if(badgeSub) badgeSub.textContent=escapeHTML(p.date)+" · top PR"; } else { badge.textContent="No PRs yet"; if(badgeSub) badgeSub.textContent="Log a lift to start"; } }
 }
 
 function initBarbellProgress() {
@@ -375,7 +386,7 @@ function initSessionTag(){
 const FUEL_TARGETS = { protein:165, carbs:240, fats:70, kcal:2200 };
 function getFuelToday(){
   const d=loadStorage().days?.[todayKey()]?.fuel;
-  return d || { protein:90, carbs:150, fats:38, kcal:1300 };
+  return d || { protein:0, carbs:0, fats:0, kcal:0 };
 }
 function saveFuelToday(fuel){
   const data=loadStorage(); const k=todayKey();
@@ -413,8 +424,7 @@ function initFuel(){
     saveFuelToday(next); updateFuelUI(next); updateHeroMetrics(); form.reset(); form.hidden=true;
     const btn=form.querySelector('button[type="submit"]'); const orig=btn.textContent; btn.textContent="Saving…"; btn.disabled=true; setTimeout(()=>{ btn.textContent=orig; btn.disabled=false; window.NutriliftToast&&window.NutriliftToast(`+${p}P · +${c}C · +${f}F · +${k} kcal saved`); }, 450);
   });
-  // also persist fuel to history export
-  const origExport = window.NutriliftToast; // keep ref for later use
+  // fuel persists to history export automatically via days[date].fuel
 }
 
 // — Stack — persisted defs (name/dose) + taken per day —
@@ -483,14 +493,14 @@ function initWeekInsights(){
     const today=new Date(); const dayIdx=today.getDay(); const monday=new Date(today); monday.setDate(today.getDate()-((dayIdx+6)%7));
     cols.forEach((col,i)=>{ const d=new Date(monday); d.setDate(monday.getDate()+i); const k=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`; const v=days[k]; const vol=v? (v.lifts?.filter(Boolean).length||0) : 0; col.style.setProperty("--vol", vol); });
     const totalWeek=Array.from(cols).reduce((a,c)=>a+parseInt(c.style.getPropertyValue("--vol")||0),0);
-    const ws=document.getElementById("weekSummary"); if(ws) ws.textContent=`${totalWeek?Math.ceil(totalWeek/2):0} sessions · ${(() => { let t=0,p=0; Object.values(days).forEach(d=>{ if(d.stack){t+=d.stack.filter(Boolean).length; p+=d.stack.length;}}); return p?Math.round(t/p*100):71; })()}% stack adherence`;
+    const ws=document.getElementById("weekSummary"); if(ws) ws.textContent=`${totalWeek?Math.ceil(totalWeek/2):0} sessions · ${(() => { let t=0,p=0; Object.values(days).forEach(d=>{ if(d.stack){t+=d.stack.filter(Boolean).length; p+=d.stack.length;}}); return p?Math.round(t/p*100):0; })()}% stack adherence`;
   }
-  const longest=computeLongestStreak(data); const ls=document.getElementById("insightStreak"); if(ls) ls.textContent=`${longest||14} days`;
-  const adhEl=document.getElementById("insightAdherence"); if(adhEl){ let t=0,p=0; Object.values(days).forEach(d=>{ if(d.stack){t+=d.stack.filter(Boolean).length; p+=d.stack.length;}}); adhEl.textContent=(p?Math.round(t/p*100):71)+"%"; }
+  const longest=computeLongestStreak(data); const ls=document.getElementById("insightStreak"); if(ls) ls.textContent=`${longest} days`;
+  const adhEl=document.getElementById("insightAdherence"); if(adhEl){ let t=0,p=0; Object.values(days).forEach(d=>{ if(d.stack){t+=d.stack.filter(Boolean).length; p+=d.stack.length;}}); adhEl.textContent=(p?Math.round(t/p*100):0)+"%"; }
   const volEl=document.getElementById("insightVolume"); if(volEl){
     const now=Object.values(days).slice(-7).reduce((a,d)=>a+(d.lifts?.filter(Boolean).length||0),0);
     const prev=Object.values(days).slice(-14,-7).reduce((a,d)=>a+(d.lifts?.filter(Boolean).length||0),0);
-    const pct=prev? Math.round((now-prev)/prev*100) : 8; volEl.textContent=(pct>=0?`+${pct}%`:`${pct}%`);
+    const pct=prev? Math.round((now-prev)/prev*100) : (now?100:0); volEl.textContent=(pct>0?`+${pct}%`:`${pct}%`);
   }
 }
 
@@ -657,7 +667,10 @@ function initFormValidation(){
       if(!v){ showErr("Email required"); return; }
       if(!validateEmail(v)){ showErr("Enter a valid email (name@domain.com)"); return; }
       clearErr(); btn.textContent="Saving…"; btn.disabled=true;
-      setTimeout(()=>{ btn.textContent="Get recap"; btn.disabled=false; input.value=""; window.NutriliftToast&&window.NutriliftToast("You’re on the list — check your inbox."); }, 600);
+      setTimeout(()=>{ btn.textContent="Get recap"; btn.disabled=false; input.value="";
+        try{ const s=loadStorage(); s.emails=s.emails||[]; s.emails.push({email:v, at:new Date().toISOString()}); saveStorage(s); window.NutriliftToast&&window.NutriliftToast("You’re on the list — check your inbox."); }
+        catch(e){ window.NutriliftToast&&window.NutriliftToast("Couldn’t save email — storage unavailable"); }
+      }, 600);
     });
   });
   // footer forms submit
@@ -675,9 +688,6 @@ function initFormValidation(){
     });
   });
 }
-// — Parallax & cursor glow disabled for clean premium feel — kept as no-ops for compat
-function initParallax() { return; }
-function initCursorGlow() { return; }
 
 // — Toast — minimal premium feedback
 function initToasts() {
@@ -731,7 +741,7 @@ function initHistoryPage(){
   }
   const breakdown=document.getElementById("breakdown"); if(breakdown){
     const fuelDays=Object.values(days).filter(d=>d.fuel); const avgKcal=fuelDays.length?Math.round(fuelDays.reduce((a,d)=>a+(d.fuel.kcal||0),0)/fuelDays.length):0;
-    breakdown.innerHTML=`<div class="recent-row"><span>Lifts logged</span><span class="mono">${Object.values(days).reduce((a,d)=>a+(d.lifts?.filter(Boolean).length||0),0)}</span></div><div class="recent-row"><span>Stack taken</span><span class="mono">${taken}/${possible}</span></div><div class="recent-row"><span>Avg kcal</span><span class="mono">${avgKcal} kcal</span></div><div class="recent-row"><span>Best streak</span><span class="mono">${streak} days</span></div>`;
+    breakdown.innerHTML=`<div class="recent-row"><span>Lifts logged</span><span class="mono">${Object.values(days).reduce((a,d)=>a+(d.lifts?.filter(Boolean).length||0),0)}</span></div><div class="recent-row"><span>Stack taken</span><span class="mono">${taken}/${possible}</span></div><div class="recent-row"><span>Avg kcal</span><span class="mono">${avgKcal} kcal</span></div><div class="recent-row"><span>Best streak</span><span class="mono">${computeLongestStreak(data)} days</span></div>`;
   }
   const detail=document.getElementById("dayDetail"); cal.addEventListener("click",e=>{ const b=e.target.closest(".cal-day"); if(!b||!detail) return; const k=b.dataset.k; const v=days[k]; const f=v?.fuel; detail.style.display="block"; detail.innerHTML=v?`<strong class="mono">${k}</strong> — ${(v.lifts?.filter(Boolean).length||0)} lifts · ${(v.stack?.filter(Boolean).length||0)} stack${f?` · ${f.kcal} kcal (${f.protein}P ${f.carbs}C ${f.fats}F)`:""}`:`<span class="mono">${k}: no data</span>`; });
   const doExport=()=>{ const rows=[["date","lifts_done","stack_done","protein","carbs","fats","kcal"]]; Object.keys(days).sort().forEach(k=>{ const d=days[k]; const f=d.fuel||{protein:0,carbs:0,fats:0,kcal:0}; rows.push([k, (d.lifts?.filter(Boolean).length||0), (d.stack?.filter(Boolean).length||0), f.protein, f.carbs, f.fats, f.kcal]); }); const csv=rows.map(r=>r.join(",")).join("\n"); const blob=new Blob([csv],{type:"text/csv"}); const a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download="nutrilift-history.csv"; a.click(); window.NutriliftToast&&window.NutriliftToast("CSV with fuel downloaded"); };
@@ -897,6 +907,20 @@ function initProgramsPage() {
   const modal = document.getElementById("programModal");
   if (!grid) return;
 
+  // live "active program" card — genuine data, no hardcoded progress
+  try{
+    const data=loadStorage(), days=data.days||{};
+    const key=data.activeProgram;
+    const name=key && PROGRAM_DATA[key] ? PROGRAM_DATA[key].title.split(" — ")[0] : "No program set";
+    const sessions=Object.keys(days).length;
+    let t=0,p=0; Object.values(days).forEach(d=>{ if(d.stack){ t+=d.stack.filter(Boolean).length; p+=d.stack.length; }});
+    const adh=p?Math.round(t/p*100):0;
+    const setName=document.getElementById("activeProgName"); if(setName) setName.textContent=name;
+    const setMeta=document.getElementById("activeProgMeta"); if(setMeta) setMeta.textContent= key ? `${sessions} session${sessions===1?"":"s"} logged · set via Programs` : `${sessions} session${sessions===1?"":"s"} logged · pick a program below`;
+    const setPct=document.getElementById("activeProgPct"); if(setPct) setPct.style.width=adh+"%";
+    const setLabel=document.getElementById("activeProgPctLabel"); if(setLabel) setLabel.textContent=adh+"% stack adherence";
+  }catch(e){ console.error("Active program card failed", e); }
+
   // filters
   if (filterRow) {
     filterRow.addEventListener("click", e => {
@@ -992,8 +1016,6 @@ document.addEventListener("DOMContentLoaded", () => {
   initWeekInsights();
   initReveal();
   initTilt3D();
-  initParallax();
-  initCursorGlow();
   initToasts();
   initShortcuts();
   initBowShoot();

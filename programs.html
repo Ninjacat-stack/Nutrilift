@@ -24,7 +24,6 @@
 <body>
   <a href="#programsGrid" class="skip-link">Skip to content</a>
   <div class="scene-bg" aria-hidden="true"><div class="scene-grid"></div><div class="orb orb-1"></div></div>
-  <div class="cursor-glow" id="cursorGlow" aria-hidden="true"></div>
 
   <header class="masthead">
     <div class="masthead-left">
@@ -74,11 +73,11 @@
       </div>
       <div style="display:grid; gap:12px;">
         <div style="background:var(--paper); border:1px solid var(--line); border-radius:12px; padding:16px;">
-          <div style="display:flex; justify-content:space-between; font-size:11px;" class="mono"><span style="color:var(--muted);">ACTIVE PROGRAM</span><span style="color:var(--success);">● PUSH DAY</span></div>
-          <strong style="font-family:var(--font-display); font-size:18px; display:block; margin:8px 0 4px;">Push / Pull / Legs Pro</strong>
-          <span style="font-size:12px; color:var(--ink-soft);">5 day · Week 3 of 8 · Next: Pull Day</span>
-          <div style="height:6px; background:var(--line); border-radius:3px; margin-top:10px; overflow:hidden;"><span style="display:block; width:38%; height:100%; background:var(--iron-red);"></span></div>
-          <div style="display:flex; justify-content:space-between; margin-top:6px;" class="mono"><span style="font-size:10px; color:var(--muted);">38% complete</span><a href="index.html#log" style="font-size:11px; color:var(--iron-red); text-decoration:none;">Continue →</a></div>
+          <div style="display:flex; justify-content:space-between; font-size:11px;" class="mono"><span style="color:var(--muted);">ACTIVE PROGRAM</span><span style="color:var(--success);">● LIVE</span></div>
+          <strong style="font-family:var(--font-display); font-size:18px; display:block; margin:8px 0 4px;" id="activeProgName">Push / Pull / Legs Pro</strong>
+          <span style="font-size:12px; color:var(--ink-soft);" id="activeProgMeta">—</span>
+          <div style="height:6px; background:var(--line); border-radius:3px; margin-top:10px; overflow:hidden;"><span style="display:block; width:0%; height:100%; background:var(--iron-red);" id="activeProgPct"></span></div>
+          <div style="display:flex; justify-content:space-between; margin-top:6px;" class="mono"><span style="font-size:10px; color:var(--muted);" id="activeProgPctLabel">—</span><a href="index.html#log" style="font-size:11px; color:var(--iron-red); text-decoration:none;">Continue →</a></div>
         </div>
         <div style="background:var(--ink); color:var(--surface); border-radius:12px; padding:14px; display:flex; justify-content:space-between; align-items:center;">
           <span style="font-size:13px; font-weight:600;">Need a coach?</span><a href="index.html#pricing" class="btn btn-sm" style="background:#fff; color:var(--ink); border:none;">Squad ₹499</a>
@@ -96,7 +95,7 @@
         <h3>Full-Body Foundation</h3>
         <p>3 full-body sessions, compound-first. 45 minutes, 3 exercises per day. The fastest way to build a base without burnout.</p>
         <div class="pfc-meta"><span>45 min</span><span>Hypertrophy</span><span>RPE 7</span></div>
-        <div class="pfc-foot"><button class="mono" data-program="fbf">View details →</button><span class="pfc-stats mono">★ 4.9 · 2.1k logs</span></div>
+        <div class="pfc-foot"><button class="mono" data-program="fbf">View details →</button><span class="pfc-stats mono">FREE · LOCAL</span></div>
       </div>
     </article>
 
@@ -106,7 +105,7 @@
         <h3>Upper / Lower Power</h3>
         <p>Heavy upper, heavy lower, volume upper, volume lower. For lifters chasing numbers on the big three.</p>
         <div class="pfc-meta"><span>70 min</span><span>Strength</span><span>4× week</span></div>
-        <div class="pfc-foot"><button class="mono" data-program="ul">View details →</button><span class="pfc-stats mono">★ 4.8 · 1.6k logs</span></div>
+        <div class="pfc-foot"><button class="mono" data-program="ul">View details →</button><span class="pfc-stats mono">FREE · LOCAL</span></div>
       </div>
     </article>
 
@@ -116,7 +115,7 @@
         <h3>Push / Pull / Legs Pro</h3>
         <p>Most-logged split. PPL + Upper + Lower with progressive overload. Built for 12-week blocks.</p>
         <div class="pfc-meta"><span>70 min</span><span>PPL</span><span>Intermediate</span></div>
-        <div class="pfc-foot"><button class="mono" data-program="ppl">View details →</button><span class="pfc-stats mono">★ 4.9 · 4.3k logs</span></div>
+        <div class="pfc-foot"><button class="mono" data-program="ppl">View details →</button><span class="pfc-stats mono">FREE · LOCAL</span></div>
       </div>
     </article>
 
@@ -126,7 +125,7 @@
         <h3>Bro Split 2.0</h3>
         <p>Chest, Back, Legs, Arms — but with modern volume landmarks and no junk sets. Every set has a purpose.</p>
         <div class="pfc-meta"><span>60 min</span><span>Hypertrophy</span><span>High volume</span></div>
-        <div class="pfc-foot"><button class="mono" data-program="bro">View details →</button><span class="pfc-stats mono">★ 4.7 · 980 logs</span></div>
+        <div class="pfc-foot"><button class="mono" data-program="bro">View details →</button><span class="pfc-stats mono">FREE · LOCAL</span></div>
       </div>
     </article>
 
@@ -136,7 +135,7 @@
         <h3>High Frequency</h3>
         <p>6 days, short sessions, high frequency. One muscle twice per week without frying your CNS.</p>
         <div class="pfc-meta"><span>40 min</span><span>6× week</span><span>Advanced</span></div>
-        <div class="pfc-foot"><button class="mono" data-program="hf">View details →</button><span class="pfc-stats mono">★ 4.8 · 720 logs</span></div>
+        <div class="pfc-foot"><button class="mono" data-program="hf">View details →</button><span class="pfc-stats mono">FREE · LOCAL</span></div>
       </div>
     </article>
 
@@ -146,7 +145,7 @@
         <h3>Comp Peaking Cycle</h3>
         <p>8-week peaking block for SBD. Heavy singles, back-offs, taper week. Test day on week 8.</p>
         <div class="pfc-meta"><span>90 min</span><span>Peaking</span><span>Strength</span></div>
-        <div class="pfc-foot"><button class="mono" data-program="peak">View details →</button><span class="pfc-stats mono">★ 4.9 · 540 logs</span></div>
+        <div class="pfc-foot"><button class="mono" data-program="peak">View details →</button><span class="pfc-stats mono">FREE · LOCAL</span></div>
       </div>
     </article>
 
@@ -193,7 +192,7 @@
         <div class="footer-social mono"><a href="index.html">Home</a><a href="programs.html">Programs</a><a href="index.html#pricing">Pricing</a></div>
       </div>
       <div class="footer-col"><span class="mono footer-title">Product</span><a href="index.html#log">Today's Log</a><a href="index.html#stack">Stack</a><a href="programs.html">Programs</a><a href="index.html#pricing">Pricing</a></div>
-      <div class="footer-col"><span class="mono footer-title">Resources</span><a href="index.html#method">The Method</a><a href="index.html#faq">FAQ</a><a href="#" data-toast="Changelog — coming soon">Changelog</a></div>
+      <div class="footer-col"><span class="mono footer-title">Resources</span><a href="index.html#method">The Method</a><a href="index.html#faq">FAQ</a><a href="showcase.html">Showcase</a></div>
       <div class="footer-col"><span class="mono footer-title">Stay in the loop</span><p class="mono footer-note">Weekly volume + adherence recap.</p><form class="footer-form" onsubmit="event.preventDefault(); this.reset(); window.NutriliftToast && window.NutriliftToast('You\'re on the list — check your inbox.');"><input type="email" placeholder="you@email.com" required aria-label="Email"><button class="btn btn-primary btn-sm" type="submit">Subscribe</button></form></div>
     </div>
     <div class="footer-bottom mono"><span>© <span id="footerYear">2026</span> Nutrilift · Built for lifters. <span class="hide-mobile">· <kbd>?</kbd> help · <kbd>t</kbd> theme</span></span><span>SQUAT · BENCH · DEADLIFT · RINSE · REPEAT</span></div>
