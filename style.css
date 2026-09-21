@@ -114,8 +114,6 @@ html[data-theme="dark"] .scene-grid { opacity: 0.035; }
 .orb-2, .orb-3 { display: none; }
 html[data-theme="dark"] .orb-1 { opacity: 0.18; filter: blur(48px); }
 
-/* cursor glow — disabled for clean feel */
-.cursor-glow { display: none !important; }
 /* — Directional bow — custom element follows mouse, rotates with movement — */
 html.bow-active{ cursor: none !important; }
 html.bow-active a, html.bow-active button, html.bow-active [role="button"], html.bow-active .btn{ cursor: none !important; }
@@ -131,9 +129,6 @@ html.bow-active input, html.bow-active textarea, html.bow-active [contenteditabl
 .arrow-hit{ outline:2px solid var(--iron-red) !important; outline-offset:2px; transform:scale(0.97); box-shadow:0 0 0 6px var(--iron-red-glow) !important; }
 @media (pointer: coarse){ #bowCursor{ display:none !important; } html.bow-active, html.bow-active *{ cursor: auto !important; } .shot-arrow{ display:none !important; } }
 @media (prefers-reduced-motion: reduce){ #bowCursor{ display:none !important; } html.bow-active{ cursor: auto !important; } html.bow-active a, html.bow-active button{ cursor: pointer !important; } .shot-arrow{ display:none !important; } }
-/* legacy home-cursor compat */
-.home-cursor{ cursor: inherit; }
-.cursor-glow{ display:none !important; }
 
 /* — Buttons — clean premium, subtle elevation only — */
 .btn {
