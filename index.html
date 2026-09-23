@@ -157,7 +157,7 @@
           <div class="plates" id="platesRow"></div>
           <span class="sleeve right"></span>
         </div>
-        <p class="progress-label"><span class="mono" id="doneCount">0</span><span class="mono">/</span><span class="mono" id="totalCount">5</span> lifts loaded</p>
+        <p class="progress-label"><span class="mono" id="doneCount">0</span><span class="mono">/</span><span class="mono" id="totalCount">5</span> lifts loaded · <span class="mono" id="donePct">0%</span></p>
 
         <table class="log-sheet" id="logSheet">
           <thead>
@@ -169,35 +169,35 @@
               <td contenteditable="true" data-field="name" spellcheck="false">Barbell Bench Press</td>
               <td class="mono" contenteditable="true" data-field="sets" spellcheck="false">4 × 6</td>
               <td class="mono" contenteditable="true" data-field="load" spellcheck="false">80 kg</td>
-              <td class="th-check" style="display:flex; gap:6px; justify-content:center; align-items:center;"><button type="button" class="check-btn" aria-pressed="false" aria-label="Mark Barbell Bench Press complete"></button><button type="button" class="del-lift" aria-label="Delete exercise" title="Delete">×</button></td>
+              <td class="th-check row-actions"><button type="button" class="check-btn" aria-pressed="false" aria-label="Mark Barbell Bench Press complete"></button><button type="button" class="del-lift" aria-label="Delete exercise" title="Delete">×</button></td>
             </tr>
             <tr data-done="false">
               <td class="idx mono">02</td>
               <td contenteditable="true" data-field="name" spellcheck="false">Incline Dumbbell Press</td>
               <td class="mono" contenteditable="true" data-field="sets" spellcheck="false">3 × 10</td>
               <td class="mono" contenteditable="true" data-field="load" spellcheck="false">28 kg</td>
-              <td class="th-check" style="display:flex; gap:6px; justify-content:center; align-items:center;"><button type="button" class="check-btn" aria-pressed="false" aria-label="Mark Incline Dumbbell Press complete"></button><button type="button" class="del-lift" aria-label="Delete exercise" title="Delete">×</button></td>
+              <td class="th-check row-actions"><button type="button" class="check-btn" aria-pressed="false" aria-label="Mark Incline Dumbbell Press complete"></button><button type="button" class="del-lift" aria-label="Delete exercise" title="Delete">×</button></td>
             </tr>
             <tr data-done="false">
               <td class="idx mono">03</td>
               <td contenteditable="true" data-field="name" spellcheck="false">Weighted Dips</td>
               <td class="mono" contenteditable="true" data-field="sets" spellcheck="false">3 × 8</td>
               <td class="mono" contenteditable="true" data-field="load" spellcheck="false">+15 kg</td>
-              <td class="th-check" style="display:flex; gap:6px; justify-content:center; align-items:center;"><button type="button" class="check-btn" aria-pressed="false" aria-label="Mark Weighted Dips complete"></button><button type="button" class="del-lift" aria-label="Delete exercise" title="Delete">×</button></td>
+              <td class="th-check row-actions"><button type="button" class="check-btn" aria-pressed="false" aria-label="Mark Weighted Dips complete"></button><button type="button" class="del-lift" aria-label="Delete exercise" title="Delete">×</button></td>
             </tr>
             <tr data-done="false">
               <td class="idx mono">04</td>
               <td contenteditable="true" data-field="name" spellcheck="false">Cable Lateral Raise</td>
               <td class="mono" contenteditable="true" data-field="sets" spellcheck="false">4 × 15</td>
               <td class="mono" contenteditable="true" data-field="load" spellcheck="false">10 kg</td>
-              <td class="th-check" style="display:flex; gap:6px; justify-content:center; align-items:center;"><button type="button" class="check-btn" aria-pressed="false" aria-label="Mark Cable Lateral Raise complete"></button><button type="button" class="del-lift" aria-label="Delete exercise" title="Delete">×</button></td>
+              <td class="th-check row-actions"><button type="button" class="check-btn" aria-pressed="false" aria-label="Mark Cable Lateral Raise complete"></button><button type="button" class="del-lift" aria-label="Delete exercise" title="Delete">×</button></td>
             </tr>
             <tr data-done="false">
               <td class="idx mono">05</td>
               <td contenteditable="true" data-field="name" spellcheck="false">Overhead Triceps Extension</td>
               <td class="mono" contenteditable="true" data-field="sets" spellcheck="false">3 × 12</td>
               <td class="mono" contenteditable="true" data-field="load" spellcheck="false">22 kg</td>
-              <td class="th-check" style="display:flex; gap:6px; justify-content:center; align-items:center;"><button type="button" class="check-btn" aria-pressed="false" aria-label="Mark Overhead Triceps Extension complete"></button><button type="button" class="del-lift" aria-label="Delete exercise" title="Delete">×</button></td>
+              <td class="th-check row-actions"><button type="button" class="check-btn" aria-pressed="false" aria-label="Mark Overhead Triceps Extension complete"></button><button type="button" class="del-lift" aria-label="Delete exercise" title="Delete">×</button></td>
             </tr>
           </tbody>
         </table>
@@ -223,35 +223,35 @@
               <span class="pill-name" contenteditable="true" spellcheck="false">Creatine Monohydrate</span>
               <span class="pill-dose mono" contenteditable="true" spellcheck="false">5 g · AM</span>
             </div>
-            <div style="display:flex; gap:6px; align-items:center;"><button type="button" class="pop-btn" aria-pressed="false" aria-label="Mark taken"><span class="pop"></span></button><button type="button" class="del-stack" aria-label="Delete" title="Delete" style="width:20px;height:20px;border-radius:50%;border:1px solid var(--line);background:var(--surface);color:var(--muted);cursor:pointer;">×</button></div>
+            <div style="display:flex; gap:6px; align-items:center;"><button type="button" class="pop-btn" aria-pressed="false" aria-label="Mark taken"><span class="pop"></span></button><button type="button" class="del-stack icon-btn" aria-label="Delete" title="Delete">×</button></div>
           </li>
           <li class="pill-card" data-taken="false">
             <div class="pill-label">
               <span class="pill-name" contenteditable="true" spellcheck="false">Whey Protein Isolate</span>
               <span class="pill-dose mono" contenteditable="true" spellcheck="false">30 g · Post-workout</span>
             </div>
-            <div style="display:flex; gap:6px; align-items:center;"><button type="button" class="pop-btn" aria-pressed="false" aria-label="Mark taken"><span class="pop"></span></button><button type="button" class="del-stack" aria-label="Delete" title="Delete" style="width:20px;height:20px;border-radius:50%;border:1px solid var(--line);background:var(--surface);color:var(--muted);cursor:pointer;">×</button></div>
+            <div style="display:flex; gap:6px; align-items:center;"><button type="button" class="pop-btn" aria-pressed="false" aria-label="Mark taken"><span class="pop"></span></button><button type="button" class="del-stack icon-btn" aria-label="Delete" title="Delete">×</button></div>
           </li>
           <li class="pill-card" data-taken="false">
             <div class="pill-label">
               <span class="pill-name" contenteditable="true" spellcheck="false">Pre-Workout Blend</span>
               <span class="pill-dose mono" contenteditable="true" spellcheck="false">1 scoop · Pre-lift</span>
             </div>
-            <div style="display:flex; gap:6px; align-items:center;"><button type="button" class="pop-btn" aria-pressed="false" aria-label="Mark taken"><span class="pop"></span></button><button type="button" class="del-stack" aria-label="Delete" title="Delete" style="width:20px;height:20px;border-radius:50%;border:1px solid var(--line);background:var(--surface);color:var(--muted);cursor:pointer;">×</button></div>
+            <div style="display:flex; gap:6px; align-items:center;"><button type="button" class="pop-btn" aria-pressed="false" aria-label="Mark taken"><span class="pop"></span></button><button type="button" class="del-stack icon-btn" aria-label="Delete" title="Delete">×</button></div>
           </li>
           <li class="pill-card" data-taken="false">
             <div class="pill-label">
               <span class="pill-name" contenteditable="true" spellcheck="false">Omega-3 Fish Oil</span>
               <span class="pill-dose mono" contenteditable="true" spellcheck="false">2 g · PM</span>
             </div>
-            <div style="display:flex; gap:6px; align-items:center;"><button type="button" class="pop-btn" aria-pressed="false" aria-label="Mark taken"><span class="pop"></span></button><button type="button" class="del-stack" aria-label="Delete" title="Delete" style="width:20px;height:20px;border-radius:50%;border:1px solid var(--line);background:var(--surface);color:var(--muted);cursor:pointer;">×</button></div>
+            <div style="display:flex; gap:6px; align-items:center;"><button type="button" class="pop-btn" aria-pressed="false" aria-label="Mark taken"><span class="pop"></span></button><button type="button" class="del-stack icon-btn" aria-label="Delete" title="Delete">×</button></div>
           </li>
           <li class="pill-card" data-taken="false">
             <div class="pill-label">
               <span class="pill-name" contenteditable="true" spellcheck="false">Vitamin D3 + K2</span>
               <span class="pill-dose mono" contenteditable="true" spellcheck="false">4000 IU · AM</span>
             </div>
-            <div style="display:flex; gap:6px; align-items:center;"><button type="button" class="pop-btn" aria-pressed="false" aria-label="Mark taken"><span class="pop"></span></button><button type="button" class="del-stack" aria-label="Delete" title="Delete" style="width:20px;height:20px;border-radius:50%;border:1px solid var(--line);background:var(--surface);color:var(--muted);cursor:pointer;">×</button></div>
+            <div style="display:flex; gap:6px; align-items:center;"><button type="button" class="pop-btn" aria-pressed="false" aria-label="Mark taken"><span class="pop"></span></button><button type="button" class="del-stack icon-btn" aria-label="Delete" title="Delete">×</button></div>
           </li>
         </ul>
         <div style="display:flex; gap:8px; margin-top:10px; flex-wrap:wrap;">
@@ -320,10 +320,10 @@
         </div>
         <form id="mealForm" hidden style="margin-top:12px; display:grid; gap:8px; background:var(--paper); border:1px solid var(--line); border-radius:9px; padding:10px;">
           <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
-            <label class="mono" style="font-size:10px; color:var(--muted);">Protein g<input type="number" id="mProtein" min="0" max="300" placeholder="25" style="width:100%; margin-top:4px; padding:7px 8px; border:1px solid var(--line); border-radius:7px; background:var(--surface);"></label>
-            <label class="mono" style="font-size:10px; color:var(--muted);">Carbs g<input type="number" id="mCarbs" min="0" max="500" placeholder="40" style="width:100%; margin-top:4px; padding:7px 8px; border:1px solid var(--line); border-radius:7px; background:var(--surface);"></label>
-            <label class="mono" style="font-size:10px; color:var(--muted);">Fats g<input type="number" id="mFats" min="0" max="200" placeholder="12" style="width:100%; margin-top:4px; padding:7px 8px; border:1px solid var(--line); border-radius:7px; background:var(--surface);"></label>
-            <label class="mono" style="font-size:10px; color:var(--muted);">Kcal<input type="number" id="mKcal" min="0" max="3000" placeholder="350" style="width:100%; margin-top:4px; padding:7px 8px; border:1px solid var(--line); border-radius:7px; background:var(--surface);"></label>
+            <label class="mono" style="font-size:10px; color:var(--muted);">Protein g<input type="number" inputmode="decimal" id="mProtein" min="0" max="300" placeholder="25" style="width:100%; margin-top:4px; padding:7px 8px; border:1px solid var(--line); border-radius:7px; background:var(--surface);"></label>
+            <label class="mono" style="font-size:10px; color:var(--muted);">Carbs g<input type="number" inputmode="decimal" id="mCarbs" min="0" max="500" placeholder="40" style="width:100%; margin-top:4px; padding:7px 8px; border:1px solid var(--line); border-radius:7px; background:var(--surface);"></label>
+            <label class="mono" style="font-size:10px; color:var(--muted);">Fats g<input type="number" inputmode="decimal" id="mFats" min="0" max="200" placeholder="12" style="width:100%; margin-top:4px; padding:7px 8px; border:1px solid var(--line); border-radius:7px; background:var(--surface);"></label>
+            <label class="mono" style="font-size:10px; color:var(--muted);">Kcal<input type="number" inputmode="decimal" id="mKcal" min="0" max="3000" placeholder="350" style="width:100%; margin-top:4px; padding:7px 8px; border:1px solid var(--line); border-radius:7px; background:var(--surface);"></label>
           </div>
           <div class="mono" style="font-size:10px; color:var(--muted);">Quick presets:</div>
           <div style="display:flex; gap:6px; flex-wrap:wrap;">
@@ -350,11 +350,11 @@
             <tr><th>Lift</th><th>Best</th><th class="th-check">Date</th><th></th></tr>
           </thead>
           <tbody>
-            <tr><td contenteditable="true" spellcheck="false">Bench Press</td><td class="mono" contenteditable="true" spellcheck="false">95 kg</td><td class="mono th-check" contenteditable="true" spellcheck="false">AUG 02</td><td style="text-align:center;"><button type="button" class="del-pr" aria-label="Delete" style="width:18px;height:18px;border-radius:50%;border:1px solid var(--line);background:var(--surface);color:var(--muted);cursor:pointer;">×</button></td></tr>
-            <tr><td contenteditable="true" spellcheck="false">Squat</td><td class="mono" contenteditable="true" spellcheck="false">140 kg</td><td class="mono th-check" contenteditable="true" spellcheck="false">JUL 28</td><td style="text-align:center;"><button type="button" class="del-pr" aria-label="Delete" style="width:18px;height:18px;border-radius:50%;border:1px solid var(--line);background:var(--surface);color:var(--muted);cursor:pointer;">×</button></td></tr>
-            <tr><td contenteditable="true" spellcheck="false">Deadlift</td><td class="mono" contenteditable="true" spellcheck="false">180 kg</td><td class="mono th-check" contenteditable="true" spellcheck="false">JUL 12</td><td style="text-align:center;"><button type="button" class="del-pr" aria-label="Delete" style="width:18px;height:18px;border-radius:50%;border:1px solid var(--line);background:var(--surface);color:var(--muted);cursor:pointer;">×</button></td></tr>
-            <tr><td contenteditable="true" spellcheck="false">Front Squat</td><td class="mono" contenteditable="true" spellcheck="false">100 kg</td><td class="mono th-check" contenteditable="true" spellcheck="false">JUN 30</td><td style="text-align:center;"><button type="button" class="del-pr" aria-label="Delete" style="width:18px;height:18px;border-radius:50%;border:1px solid var(--line);background:var(--surface);color:var(--muted);cursor:pointer;">×</button></td></tr>
-            <tr><td contenteditable="true" spellcheck="false">Overhead Press</td><td class="mono" contenteditable="true" spellcheck="false">62.5 kg</td><td class="mono th-check" contenteditable="true" spellcheck="false">JUN 22</td><td style="text-align:center;"><button type="button" class="del-pr" aria-label="Delete" style="width:18px;height:18px;border-radius:50%;border:1px solid var(--line);background:var(--surface);color:var(--muted);cursor:pointer;">×</button></td></tr>
+            <tr><td contenteditable="true" spellcheck="false">Bench Press</td><td class="mono" contenteditable="true" spellcheck="false">95 kg</td><td class="mono th-check" contenteditable="true" spellcheck="false">AUG 02</td><td style="text-align:center;"><button type="button" class="del-pr icon-btn" aria-label="Delete">×</button></td></tr>
+            <tr><td contenteditable="true" spellcheck="false">Squat</td><td class="mono" contenteditable="true" spellcheck="false">140 kg</td><td class="mono th-check" contenteditable="true" spellcheck="false">JUL 28</td><td style="text-align:center;"><button type="button" class="del-pr icon-btn" aria-label="Delete">×</button></td></tr>
+            <tr><td contenteditable="true" spellcheck="false">Deadlift</td><td class="mono" contenteditable="true" spellcheck="false">180 kg</td><td class="mono th-check" contenteditable="true" spellcheck="false">JUL 12</td><td style="text-align:center;"><button type="button" class="del-pr icon-btn" aria-label="Delete">×</button></td></tr>
+            <tr><td contenteditable="true" spellcheck="false">Front Squat</td><td class="mono" contenteditable="true" spellcheck="false">100 kg</td><td class="mono th-check" contenteditable="true" spellcheck="false">JUN 30</td><td style="text-align:center;"><button type="button" class="del-pr icon-btn" aria-label="Delete">×</button></td></tr>
+            <tr><td contenteditable="true" spellcheck="false">Overhead Press</td><td class="mono" contenteditable="true" spellcheck="false">62.5 kg</td><td class="mono th-check" contenteditable="true" spellcheck="false">JUN 22</td><td style="text-align:center;"><button type="button" class="del-pr icon-btn" aria-label="Delete">×</button></td></tr>
           </tbody>
         </table>
         <div style="display:flex; gap:8px; margin-top:10px; flex-wrap:wrap;">
@@ -362,7 +362,7 @@
           <button type="button" class="btn btn-sm btn-ghost" id="resetPrBtn">Reset</button>
           <span class="mono" style="font-size:10px; color:var(--muted); align-self:center;">Click to edit · saved locally</span>
         </div>
-        <a href="programs.html" class="pr-link mono">View all PRs →</a>
+        <a href="history.html" class="pr-link mono">See log history →</a>
       </section>
     </div>
 

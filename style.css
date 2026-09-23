@@ -615,18 +615,20 @@ button.session-tag:active{ transform:translateY(0); }
 .log-sheet td[contenteditable="true"]{ outline:none; border-radius:4px; }
 .log-sheet td[contenteditable="true"]:focus{ background:var(--paper); box-shadow:0 0 0 2px var(--iron-red-glow); }
 .log-sheet td[contenteditable="true"]:hover{ background:var(--hover); }
-.del-lift{ width:20px; height:20px; border-radius:50%; border:1px solid var(--line); background:var(--surface); color:var(--muted); cursor:pointer; font-size:12px; line-height:1; display:grid; place-items:center; }
-.del-lift:hover{ border-color:var(--iron-red); color:var(--iron-red); background:var(--iron-red-soft); }
+.del-lift, .del-stack, .del-pr, .icon-btn{ width:28px; height:28px; border-radius:50%; border:1px solid var(--line); background:var(--surface); color:var(--muted); cursor:pointer; font-size:14px; line-height:1; display:grid; place-items:center; flex-shrink:0; transition:border-color 0.15s ease, color 0.15s ease, background 0.15s ease, transform 0.12s ease; }
+.del-lift:hover, .del-stack:hover, .del-pr:hover, .icon-btn:hover{ border-color:var(--iron-red); color:var(--iron-red); background:var(--iron-red-soft); }
+.del-lift:active, .del-stack:active, .del-pr:active, .icon-btn:active{ transform:scale(0.9); }
+.row-actions{ display:flex; gap:8px; justify-content:center; align-items:center; }
 .check-btn {
-  width: 20px; height: 20px; border: 1.8px solid var(--muted); border-radius: 50%;
-  background: var(--surface); cursor: pointer; position: relative; transition: all 0.15s ease;
+  width: 28px; height: 28px; border: 2px solid var(--muted); border-radius: 50%;
+  background: var(--surface); cursor: pointer; position: relative; transition: all 0.15s ease; flex-shrink:0;
 }
-.check-btn:hover { border-color: var(--iron-red); transform: scale(1.04); }
-.check-btn:active { transform: scale(0.94); }
-.check-btn[aria-pressed="true"] { background: var(--iron-red); border-color: var(--iron-red); }
+.check-btn:hover { border-color: var(--iron-red); transform: scale(1.06); }
+.check-btn:active { transform: scale(0.9); }
+.check-btn[aria-pressed="true"] { background: var(--iron-red); border-color: var(--iron-red); box-shadow:0 2px 8px var(--iron-red-glow); }
 .check-btn[aria-pressed="true"]::after {
-  content: ""; position: absolute; top: 4px; left: 3px;
-  width: 8px; height: 4.5px; border-left: 1.8px solid #fff; border-bottom: 1.8px solid #fff; transform: rotate(-45deg);
+  content: ""; position: absolute; top: 8px; left: 7px;
+  width: 11px; height: 6px; border-left: 2.5px solid #fff; border-bottom: 2.5px solid #fff; transform: rotate(-45deg);
 }
 
 /* Stack */
@@ -888,6 +890,7 @@ html[data-theme="dark"] .cta-inner .btn-ghost:hover { background: var(--paper); 
 #mealForm[hidden]{ display:none !important; }
 #mealForm{ animation: fuelIn 0.18s ease; }
 @keyframes fuelIn{ from{ opacity:0; transform:translateY(4px);} to{ opacity:1; transform:none;} }
+#mealForm input, #stackForm input{ min-height:42px; font-size:14px; }
 #mealForm input:focus{ border-color:var(--iron-red); box-shadow:0 0 0 3px var(--iron-red-glow); outline:none; }
 #mealForm input:invalid{ border-color:var(--iron-red); }
 #stackForm[hidden]{ display:none !important; }
