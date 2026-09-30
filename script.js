@@ -298,6 +298,8 @@ function persistCurrentState() {
   const streak = computeStreak(data);
   const streakEl = document.getElementById("streakCount");
   if (streakEl) streakEl.textContent = streak;
+  if (typeof updateHeroMetrics === "function") updateHeroMetrics();
+  if (typeof initWeekInsights === "function") initWeekInsights();
 }
 
 function loadPersistedState() {
@@ -357,14 +359,14 @@ function initEditableLog(){
   const stored=loadExercises(); if(stored.length!==5 || stored.some((e,i)=> e.name!==DEFAULT_EXERCISES[i]?.name || e.sets!==DEFAULT_EXERCISES[i]?.sets || e.load!==DEFAULT_EXERCISES[i]?.load)){
     // rebuild to match stored (keep dones if possible)
     const data=loadStorage(); const today=data.days?.[todayKey()]; const dones=today?.lifts||[];
-    tbody.innerHTML=stored.map((ex,i)=>`<tr data-done="${dones[i]?"true":"false"}"><td class="idx mono">${String(i+1).padStart(2,"0")}</td><td contenteditable="true" data-field="name" spellcheck="false">${escapeHTML(ex.name)}</td><td class="mono" contenteditable="true" data-field="sets" spellcheck="false">${escapeHTML(ex.sets)}</td><td class="mono" contenteditable="true" data-field="load" spellcheck="false">${escapeHTML(ex.load)}</td><td class="th-check row-actions"><button type="button" class="check-btn" aria-pressed="${dones[i]?"true":"false"}" aria-label="Mark ${escapeHTML(ex.name)} complete"></button><button type="button" class="del-lift" aria-label="Delete exercise" title="Delete">×</button></td></tr>`).join("");
+    tbody.innerHTML=stored.map((ex,i)=>`<tr data-done="${dones[i]?"true":"false"}"><td class="idx mono">${String(i+1).padStart(2,"0")}</td><td contenteditable="true" data-field="name" spellcheck="false">${escapeHTML(ex.name)}</td><td class="mono" contenteditable="true" data-field="sets" spellcheck="false">${escapeHTML(ex.sets)}</td><td class="mono" contenteditable="true" data-field="load" spellcheck="false">${escapeHTML(ex.load)}</td><td class="th-check row-actions"><button type="button" class="check-btn" aria-pressed="${dones[i]?"true":"false"}" aria-label="Mark ${escapeHTML(ex.name)} complete"></button><button type="button" class="del-lift icon-btn" aria-label="Delete exercise" title="Delete">×</button></td></tr>`).join("");
     if(!tbody.children.length){ tbody.innerHTML=`<tr><td colspan="5" class="mono" style="text-align:center; padding:18px; color:var(--muted);">No exercises yet — add one to start logging.</td></tr>`; }
     initBarbellProgress();
   }
   tbody.addEventListener("focusout", e=>{ if(e.target.matches('[data-field]')){ const v=e.target.textContent.trim(); if(!v){ e.target.textContent="—"; window.NutriliftToast&&window.NutriliftToast("Field cannot be empty"); } saveExercises(collectExercises()); reindexLog(); }});
   tbody.addEventListener("keydown", e=>{ if(e.target.matches('[data-field]') && e.key==="Enter"){ e.preventDefault(); e.target.blur(); }});
   tbody.addEventListener("click", e=>{ const del=e.target.closest(".del-lift"); if(!del) return; const tr=del.closest("tr"); if(tbody.querySelectorAll("tr").length===1 && !tr.querySelector('[data-field]')) return; tr.remove(); saveExercises(collectExercises()); reindexLog(); initBarbellProgress(); persistCurrentState(); updateHeroMetrics(); window.NutriliftToast&&window.NutriliftToast("Exercise removed"); });
-  addBtn?.addEventListener("click",()=>{ if(tbody.querySelector('td[colspan]')) tbody.innerHTML=""; const tr=document.createElement("tr"); tr.setAttribute("data-done","false"); const n=tbody.children.length+1; tr.innerHTML=`<td class="idx mono">${String(n).padStart(2,"0")}</td><td contenteditable="true" data-field="name" spellcheck="false">New Exercise</td><td class="mono" contenteditable="true" data-field="sets" spellcheck="false">3 × 10</td><td class="mono" contenteditable="true" data-field="load" spellcheck="false">20 kg</td><td class="th-check row-actions"><button type="button" class="check-btn" aria-pressed="false" aria-label="Mark New Exercise complete"></button><button type="button" class="del-lift" aria-label="Delete exercise" title="Delete">×</button></td>`; tbody.appendChild(tr); saveExercises(collectExercises()); initBarbellProgress(); persistCurrentState(); updateHeroMetrics(); const nameCell=tr.querySelector('[data-field="name"]'); nameCell.focus(); selectAllText(nameCell); });
+  addBtn?.addEventListener("click",()=>{ if(tbody.querySelector('td[colspan]')) tbody.innerHTML=""; const tr=document.createElement("tr"); tr.setAttribute("data-done","false"); const n=tbody.children.length+1; tr.innerHTML=`<td class="idx mono">${String(n).padStart(2,"0")}</td><td contenteditable="true" data-field="name" spellcheck="false">New Exercise</td><td class="mono" contenteditable="true" data-field="sets" spellcheck="false">3 × 10</td><td class="mono" contenteditable="true" data-field="load" spellcheck="false">20 kg</td><td class="th-check row-actions"><button type="button" class="check-btn" aria-pressed="false" aria-label="Mark New Exercise complete"></button><button type="button" class="del-lift icon-btn" aria-label="Delete exercise" title="Delete">×</button></td>`; tbody.appendChild(tr); saveExercises(collectExercises()); initBarbellProgress(); persistCurrentState(); updateHeroMetrics(); const nameCell=tr.querySelector('[data-field="name"]'); nameCell.focus(); selectAllText(nameCell); });
   resetBtn?.addEventListener("click",()=>{ if(!confirm("Reset current session?")) return; const curEx=SESSIONS[getSession()]?.exercises || DEFAULT_EXERCISES; saveExercises(curEx); location.reload(); });
 }
 function initSessionTag(){
@@ -849,12 +851,28 @@ function initShowcase(){
     if(glowA) glowA.style.opacity=0.55+p*0.45;
     const phaseEl=document.getElementById("showPhaseLabel");
     if(phaseEl) phaseEl.textContent=p<0.34?"01 / SESSION":p<0.67?"02 / STACK":"03 / FUEL";
+    const chip=document.getElementById("showChip");
+    const chipLabel=p<0.34?"PUSH · PULL · LEGS":p<0.67?"CREATINE · WHEY · OMEGA":"PROTEIN · CARBS · FATS";
+    if(chip && chip.textContent!==chipLabel) chip.textContent=chipLabel;
   };
   const onScroll=()=>{ if(!ticking){ ticking=true; rafId=requestAnimationFrame(render); } };
   const onResize=onScroll;
   window.addEventListener("scroll", onScroll, { passive:true });
   window.addEventListener("resize", onResize);
   render();
+  // 5) canvas shockwave — click fires an expanding ring + chip pulse (decorative delight only)
+  const canvasEl=story.querySelector(".show-canvas");
+  if(canvasEl && !reduced){
+    canvasEl.addEventListener("click", e=>{
+      if(e.target.closest("a,button")) return;
+      const r=canvasEl.getBoundingClientRect();
+      const b=document.createElement("span"); b.className="show-burst";
+      b.style.left=(e.clientX-r.left).toFixed(1)+"px"; b.style.top=(e.clientY-r.top).toFixed(1)+"px";
+      canvasEl.appendChild(b); setTimeout(()=>b.remove(), 700);
+      const chipEl=document.getElementById("showChip");
+      if(chipEl){ chipEl.style.transform="translateX(-50%) translateZ(40px) scale(1.3)"; setTimeout(()=>{ chipEl.style.transform=""; },200); }
+    });
+  }
   function cleanup(){
     window.removeEventListener("scroll", onScroll);
     window.removeEventListener("resize", onResize);
