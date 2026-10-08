@@ -570,62 +570,146 @@ function initTilt3D() {
   });
 }
 
-// — Directional bow + triple-click physics — shoots opposite to movement, hits button —
+// — Directional bow + archery minigame — smooth lerp, dblclick shoots, triple-click spawns board; miss = 404 —
 function initBowShoot(){
   if(window.matchMedia('(pointer: coarse)').matches || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
   const bow=document.createElement('div'); bow.id='bowCursor'; bow.setAttribute('aria-hidden','true');
   bow.innerHTML=`<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32' width='34' height='34'><path d='M9 3 Q22 16 9 29' stroke='#C81E3D' stroke-width='2.2' fill='none' stroke-linecap='round' stroke-linejoin='round'/><line x1='9' y1='6' x2='9' y2='26' stroke='#211714' stroke-width='0.9' opacity='0.18' stroke-dasharray='2 2'/><g transform='translate(9 14)'><line x1='0' y1='2' x2='15' y2='2' stroke='#5B4C47' stroke-width='1.5' stroke-linecap='round'/><path d='M15 2 L11 0 L11 4 Z' fill='#211714' stroke='#211714' stroke-width='0.6' stroke-linejoin='round'/><path d='M0 0 L3 2 L0 4' fill='none' stroke='#9A8A83' stroke-width='1.1' opacity='0.9' stroke-linecap='round' stroke-linejoin='round'/></g></svg>`;
   document.body.appendChild(bow); document.documentElement.classList.add('bow-active');
-  let x=innerWidth/2, y=innerHeight/2, lastX=x, lastY=y, angle=0, shootAngle=0, ticking=false;
-  const upd=()=>{ bow.style.left=x+'px'; bow.style.top=y+'px'; bow.style.transform=`translate(-50%,-50%) rotate(${angle}deg)`; ticking=false; };
+  // smooth-follow state — lerped every frame in rAF loop (no CSS transition, no jitter)
+  let tx=innerWidth/2, ty=innerHeight/2, px=tx, py=ty;
+  let lastX=tx, lastY=ty, tAngle=0, angle=0, tShoot=0, shootAngle=0, recoil=1;
+  const norm=a=>{ while(a>180)a-=360; while(a<=-180)a+=360; return a; };
+  const bowLoop=()=>{
+    px+=(tx-px)*0.35; py+=(ty-py)*0.35;
+    angle+=norm(tAngle-angle)*0.3;
+    recoil+=(1-recoil)*0.2;
+    bow.style.left=px+'px'; bow.style.top=py+'px';
+    bow.style.transform=`translate(-50%,-50%) rotate(${angle.toFixed(2)}deg) scale(${recoil.toFixed(3)})`;
+    requestAnimationFrame(bowLoop);
+  };
+  requestAnimationFrame(bowLoop);
   document.addEventListener('mousemove', e=>{
     const dx=e.clientX-lastX, dy=e.clientY-lastY;
-    if(Math.hypot(dx,dy)>1.5){ const mv=Math.atan2(dy,dx)*180/Math.PI; shootAngle=(mv+180)%360; if(shootAngle>180) shootAngle-=360; angle=shootAngle; }
-    x=e.clientX; y=e.clientY; lastX=e.clientX; lastY=e.clientY; bow.classList.add('show');
-    if(!ticking){ requestAnimationFrame(upd); ticking=true; }
+    if(Math.hypot(dx,dy)>1.5){ const mv=Math.atan2(dy,dx)*180/Math.PI; tShoot=norm(mv+180); shootAngle=tShoot; tAngle=shootAngle; }
+    tx=e.clientX; ty=e.clientY; lastX=e.clientX; lastY=e.clientY; bow.classList.add('show');
   }, {passive:true});
   document.addEventListener('mouseleave', ()=> bow.classList.remove('show'));
   document.addEventListener('mouseenter', ()=> bow.classList.add('show'));
-  // triple-click (e.detail===3) fires with physics and button hit
-  document.addEventListener('click', e=>{
-    if(e.detail!==3) return;
+  // archery board — dblclick spawns it on the predicted flight path (same physics as the shot)
+  const V=16, GRAV=0.22, BOARD_R=60;
+  let board=null, flying=false, cooldownUntil=0;
+  const predict=(sx,sy,ang,n)=>{ const r=ang*Math.PI/180; const vx=Math.cos(r)*V; let x=sx, y=sy, vy=Math.sin(r)*V; for(let i=0;i<n;i++){ x+=vx; y+=vy; vy+=GRAV; } return {x,y}; };
+  const fits=(x,y,m)=> x>m && x<innerWidth-m && y>m && y<innerHeight-m;
+  // double-click shoots — delayed 350ms so a triple-click can steal it to spawn a board instead
+  let pendingDouble=null;
+  document.addEventListener('dblclick', e=>{
     if(e.target.closest('input, textarea, [contenteditable="true"]')) return;
     e.preventDefault();
-    const startX=x, startY=y, ang=shootAngle;
+    clearTimeout(pendingDouble);
+    pendingDouble=setTimeout(()=>{ pendingDouble=null; fireArrow(); }, 350);
+  });
+  // triple-click spawns the board (cancels any pending double-click shot)
+  document.addEventListener('click', e=>{
+    if(e.detail!==3) return;
+    if(e.target.closest('input, textarea, [contenteditable="true"], button, a, [role="button"]')) return;
+    clearTimeout(pendingDouble); pendingDouble=null;
+    e.preventDefault();
+    if(board) board.el.remove();
+    let spot=null;
+    for(let n=26;n>=10;n--){ const p=predict(tx,ty,shootAngle,n); if(fits(p.x,p.y,80)){ spot=p; break; } }
+    if(!spot){ window.NutriliftToast&&window.NutriliftToast("No range here — aim from open space 🎯"); return; }
+    const bel=document.createElement('div'); bel.className='archery-board'; bel.setAttribute('aria-hidden','true');
+    bel.style.left=spot.x+'px'; bel.style.top=spot.y+'px';
+    document.body.appendChild(bel);
+    board={el:bel, cx:spot.x, cy:spot.y, r:BOARD_R};
+    cooldownUntil=Date.now()+600;
+    window.NutriliftToast&&window.NutriliftToast("Target up — double-click to shoot. Miss = 404 😬");
+  });
+  // arrow shot — fired by the delayed double-click; board target if active, else button hit
+  const fireArrow=()=>{
+    if(Date.now()<cooldownUntil || flying) return;
+    const startX=px, startY=py, ang=shootAngle;
     const el=document.createElement('div'); el.className='shot-arrow';
     el.innerHTML=`<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 28 12' width='28' height='12'><line x1='2' y1='6' x2='20' y2='6' stroke='#211714' stroke-width='1.6' stroke-linecap='round'/><path d='M20 6 L14 2 L14 10 Z' fill='#C81E3D' stroke='#8F2438' stroke-width='0.7' stroke-linejoin='round'/><path d='M2 3 L6 6 L2 9' fill='none' stroke='#9A8A83' stroke-width='1' stroke-linecap='round' stroke-linejoin='round'/></svg>`;
     el.style.left=(startX-14)+'px'; el.style.top=(startY-7)+'px'; el.style.transform=`rotate(${ang}deg)`; el.style.opacity='1';
     document.body.appendChild(el);
-    // physics: velocity + gravity
-    const rad=ang*Math.PI/180; let vx=Math.cos(rad)*16, vy=Math.sin(rad)*16; const g=0.38; let px=startX, py=startY;
-    const btns=Array.from(document.querySelectorAll('button, a.btn, [role="button"]')).filter(b=> !b.closest('#bowCursor') && b.offsetParent!==null && !b.disabled);
-    let hit=null, raf=null;
+    flying=true; recoil=0.85;
+    // physics: velocity + gravity (same constants the board was placed with)
+    const rad=ang*Math.PI/180; let vx=Math.cos(rad)*V, vy=Math.sin(rad)*V, ax=startX, ay=startY;
+    const btns= board ? [] : Array.from(document.querySelectorAll('button, a.btn, [role="button"]')).filter(b=> !b.closest('#bowCursor') && b.offsetParent!==null && !b.disabled);
+    let hit=null, raf=null, done=false;
+    const finish=()=>{ done=true; flying=false; };
+    const miss=()=>{
+      if(done) return; finish();
+      el.style.opacity='0'; setTimeout(()=> el.remove(), 200);
+      if(board){ const b=board; board=null; b.el.remove(); window.location.href='404.html?missed=1'; }
+    };
+    const hitBoard=()=>{
+      if(done) return; finish();
+      const b=board; board=null;
+      b.el.classList.add('board-hit');
+      try{ const s=JSON.parse(localStorage.getItem('nutrilift:v1')||'{}'); s.archeryHits=(s.archeryHits||0)+1; localStorage.setItem('nutrilift:v1',JSON.stringify(s)); window.NutriliftToast&&window.NutriliftToast(`🎯 BULLSEYE — ${s.archeryHits} total`); }
+      catch(err){ window.NutriliftToast&&window.NutriliftToast('🎯 BULLSEYE'); }
+      el.style.opacity='0'; setTimeout(()=> el.remove(), 250);
+      setTimeout(()=> b.el.remove(), 550);
+    };
     const step=()=>{
-      px+=vx; py+=vy; vy+=g;
+      if(done) return;
+      ax+=vx; ay+=vy; vy+=GRAV;
       const curAng=Math.atan2(vy,vx)*180/Math.PI;
-      el.style.left=(px-14)+'px'; el.style.top=(py-7)+'px'; el.style.transform=`rotate(${curAng}deg)`;
+      el.style.left=(ax-14)+'px'; el.style.top=(ay-7)+'px'; el.style.transform=`rotate(${curAng}deg)`;
       // bounds check
-      if(px<-40||px>innerWidth+40||py>innerHeight+40){ el.remove(); return; }
-      // hit test: arrow tip (px+14*cos, py+7*sin?) approx px,py is center, check tip
-      const tipX=px+14*Math.cos(curAng*Math.PI/180), tipY=py+Math.sin(curAng*Math.PI/180)*7;
-      for(const b of btns){
-        const r=b.getBoundingClientRect();
-        if(tipX>=r.left && tipX<=r.right && tipY>=r.top && tipY<=r.bottom){ hit=b; break; }
-      }
-      if(hit){
-        hit.classList.add('arrow-hit'); setTimeout(()=> hit.classList.remove('arrow-hit'), 400);
-        hit.click();
-        window.NutriliftToast&&window.NutriliftToast(`Hit — ${hit.textContent.trim().slice(0,22)} clicked`);
-        el.style.transform=`rotate(${curAng}deg) scale(1.15)`; el.style.opacity='0';
-        setTimeout(()=> el.remove(), 220);
-        return;
+      if(ax<-40||ax>innerWidth+40||ay>innerHeight+40){ miss(); return; }
+      if(board){
+        const tipX=ax+14*Math.cos(curAng*Math.PI/180), tipY=ay+14*Math.sin(curAng*Math.PI/180);
+        if(Math.hypot(tipX-board.cx, tipY-board.cy)<=board.r){ hitBoard(); return; }
+      } else {
+        // hit test: arrow tip vs buttons
+        const tipX=ax+14*Math.cos(curAng*Math.PI/180), tipY=ay+Math.sin(curAng*Math.PI/180)*7;
+        for(const b of btns){
+          const r=b.getBoundingClientRect();
+          if(tipX>=r.left && tipX<=r.right && tipY>=r.top && tipY<=r.bottom){ hit=b; break; }
+        }
+        if(hit){
+          hit.classList.add('arrow-hit'); setTimeout(()=> hit.classList.remove('arrow-hit'), 400);
+          hit.click();
+          window.NutriliftToast&&window.NutriliftToast(`Hit — ${hit.textContent.trim().slice(0,22)} clicked`);
+          el.style.transform=`rotate(${curAng}deg) scale(1.15)`; el.style.opacity='0';
+          setTimeout(()=> el.remove(), 220);
+          finish(); return;
+        }
       }
       raf=requestAnimationFrame(step);
     };
     raf=requestAnimationFrame(step);
-    setTimeout(()=>{ if(el.parentNode){ cancelAnimationFrame(raf); el.style.opacity='0'; setTimeout(()=> el.remove(), 200); } }, 1800);
-    bow.style.transform=`translate(-50%,-50%) rotate(${angle}deg) scale(0.88)`; setTimeout(()=> bow.style.transform=`translate(-50%,-50%) rotate(${angle}deg) scale(1)`,140);
-  });
+    setTimeout(()=>{ if(!done) miss(); }, 2000);
+  };
+}
+// — Beast mode easter egg — type BEAST or Konami code, persisted —
+function initBeastMode(){
+  const KEY="beast";
+  try{ if(loadStorage()[KEY]) document.body.classList.add("beast-mode"); }catch(e){}
+  const KONAMI=["arrowup","arrowup","arrowdown","arrowdown","arrowleft","arrowright","arrowleft","arrowright","b","a"];
+  let buf=[];
+  const toggle=(on)=>{
+    document.body.classList.toggle("beast-mode", on);
+    try{ const d=loadStorage(); d[KEY]=on; saveStorage(d); }catch(e){}
+    window.NutriliftToast&&window.NutriliftToast(on?"🔥 BEAST MODE ENGAGED — type BEAST again to chill":"Beast mode off — back to calm");
+  };
+  document.addEventListener("keydown", e=>{
+    if(e.target.matches("input, textarea, [contenteditable='true']")) return;
+    const k=e.key.toLowerCase();
+    buf.push(k); if(buf.length>10) buf.shift();
+    const word=buf.join("");
+    const konami=KONAMI.every((v,i)=> buf[buf.length-KONAMI.length+i]===v);
+    if(word.slice(-5)==="beast" || konami){
+      buf=[];
+      e.stopImmediatePropagation();
+      e.preventDefault();
+      toggle(!document.body.classList.contains("beast-mode"));
+    }
+  }, { capture:true });
 }
 // — Shortcuts — t: theme, ?: help
 function initShortcuts(){
@@ -1039,6 +1123,7 @@ document.addEventListener("DOMContentLoaded", () => {
   initTilt3D();
   initToasts();
   initShortcuts();
+  initBeastMode();
   initBowShoot();
   initActiveNav();
   initMobileNav();
