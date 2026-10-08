@@ -117,7 +117,7 @@ html[data-theme="dark"] .orb-1 { opacity: 0.18; filter: blur(48px); }
 /* — Directional bow — custom element follows mouse, rotates with movement — */
 html.bow-active{ cursor: none !important; }
 html.bow-active a, html.bow-active button, html.bow-active [role="button"], html.bow-active .btn{ cursor: none !important; }
-#bowCursor{ position:fixed; left:0; top:0; width:34px; height:34px; pointer-events:none; z-index:9999; transform: translate(-50%,-50%) rotate(0deg); will-change: transform; filter: drop-shadow(0 2px 4px rgba(33,23,20,0.14)); transition: transform 0.07s linear; display:none; }
+#bowCursor{ position:fixed; left:0; top:0; width:34px; height:34px; pointer-events:none; z-index:9999; transform: translate(-50%,-50%) rotate(0deg); will-change: transform; filter: drop-shadow(0 2px 4px rgba(33,23,20,0.14)); display:none; }
 #bowCursor.show{ display:block; }
 #bowCursor svg{ width:100%; height:100%; display:block; }
 #bowCursor .bow-string{ stroke-dasharray:2 2; opacity:0.22; }
@@ -127,6 +127,14 @@ html.bow-active input, html.bow-active textarea, html.bow-active [contenteditabl
 /* shot arrow — rotates with shoot direction */
 .shot-arrow{ position:fixed; width:30px; height:14px; pointer-events:none; z-index:9998; will-change:transform, opacity; filter:drop-shadow(0 1px 3px rgba(0,0,0,0.18)); }
 .arrow-hit{ outline:2px solid var(--iron-red) !important; outline-offset:2px; transform:scale(0.97); box-shadow:0 0 0 6px var(--iron-red-glow) !important; }
+/* archery board — dblclick spawns it on the predicted flight path */
+.archery-board{ position:fixed; width:120px; height:120px; margin:-60px 0 0 -60px; border-radius:50%; pointer-events:none; z-index:9997;
+  background:radial-gradient(circle, #C81E3D 0 9px, #fff 9px 20px, #211714 20px 32px, #fff 32px 44px, #C81E3D 44px 56px, #8F2438 56px 60px);
+  border:3px solid var(--line); box-shadow:0 8px 30px rgba(0,0,0,0.25), 0 0 0 6px var(--iron-red-glow);
+  animation:boardPop 0.35s cubic-bezier(0.2,1.4,0.4,1); }
+@keyframes boardPop{ from{ transform:scale(0.3); opacity:0; } to{ transform:scale(1); opacity:1; } }
+.archery-board.board-hit{ animation:boardHit 0.55s ease forwards; }
+@keyframes boardHit{ 0%{ filter:brightness(1); } 30%{ filter:brightness(2); transform:scale(1.12); } 100%{ filter:brightness(1.4); transform:scale(1); opacity:0; } }
 @media (pointer: coarse){ #bowCursor{ display:none !important; } html.bow-active, html.bow-active *{ cursor: auto !important; } .shot-arrow{ display:none !important; } }
 @media (prefers-reduced-motion: reduce){ #bowCursor{ display:none !important; } html.bow-active{ cursor: auto !important; } html.bow-active a, html.bow-active button{ cursor: pointer !important; } .shot-arrow{ display:none !important; } }
 
@@ -1021,6 +1029,16 @@ html[data-theme="dark"] .cta-inner .btn-ghost:hover { background: var(--paper); 
   padding: 8px 14px; border-radius: 8px; font-size: 12px; z-index: 9999;
 }
 .skip-link:focus { left: 12px; }
+
+/* BEAST MODE — hidden theme (type BEAST or Konami code), persisted */
+body.beast-mode{ --iron-red-glow: rgba(200,30,61,0.28); }
+body.beast-mode .masthead{ border-color:var(--iron-red); box-shadow:0 0 0 1px var(--iron-red-dim), 0 8px 28px var(--iron-red-glow); }
+body.beast-mode .panel, body.beast-mode .hero-inner{ border-color:rgba(200,30,61,0.35); }
+body.beast-mode .wordmark .dot{ animation:beastBlink 0.7s steps(2,jump-none) infinite; }
+@keyframes beastBlink{ 50%{ opacity:0.15; } }
+body.beast-mode .check-btn[aria-pressed="true"], body.beast-mode .pop-btn[aria-pressed="true"] .pop{ box-shadow:0 0 12px var(--iron-red); }
+body.beast-mode .hero-badge{ animation:beastWiggle 0.9s ease-in-out infinite; }
+@keyframes beastWiggle{ 0%,100%{ transform:rotate(-1.5deg); } 50%{ transform:rotate(1.5deg) scale(1.03); } }
 
 /* Kbd hint */
 kbd{ font-family:var(--font-mono); font-size:10px; background:var(--paper); border:1px solid var(--line); border-bottom-width:2px; padding:1px 5px; border-radius:4px; color:var(--muted); }
