@@ -30,8 +30,6 @@ function saveStorage(data) {
 
 // — Central Data Model (source of truth) —
 // { theme, exercises:[{name,sets,load}], stackDefs:[{name,dose}], prs:[{lift,best,date}], days:{ "YYYY-MM-DD": {lifts:[bool], stack:[bool], fuel:{protein,carbs,fats,kcal}} }, activeProgram }
-function getStore(){ return loadStorage(); }
-function setStore(d){ saveStorage(d); return d; }
 
 // — Security: escape HTML before innerHTML —
 function escapeHTML(s){ return String(s||"").replace(/[&<>"']/g, c=> ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
@@ -513,7 +511,7 @@ function initWeekInsights(){
 function initReveal() {
   const prefersReduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   if (prefersReduced) return;
-  const els = document.querySelectorAll(".hero, .method, .panel, .insights, .programs-teaser, .testimonials, .pricing, .faq, .cta-banner, .programs-hero");
+  const els = document.querySelectorAll(".hero, .method, .panel, .insights, .programs-teaser, .pricing, .faq, .cta-banner, .programs-hero");
   if (!els.length) return;
   els.forEach(el => el.classList.add("reveal"));
   const io = new IntersectionObserver(entries => {
