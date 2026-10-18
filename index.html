@@ -366,6 +366,35 @@
       </section>
     </div>
 
+    <section class="panel weight-panel" id="weightPanel" aria-label="Body Weight">
+      <div class="panel-head">
+        <h2>Body Weight</h2>
+        <span class="adherence mono" id="weightHead">No entries yet</span>
+      </div>
+      <div class="weight-layout">
+        <div class="weight-side">
+          <div class="weight-stats">
+            <div class="weight-stat"><span class="mono">CURRENT</span><strong id="wCurrent">—</strong><span class="mono weight-sub" id="wCurrentDate">no entries yet</span></div>
+            <div class="weight-stat"><span class="mono">7-DAY Δ</span><strong id="wDelta7" class="w-delta">—</strong><span class="mono weight-sub">vs last week</span></div>
+            <div class="weight-stat"><span class="mono">30-DAY Δ</span><strong id="wDelta30" class="w-delta">—</strong><span class="mono weight-sub">vs last month</span></div>
+          </div>
+          <form id="weightForm" class="weight-form">
+            <label class="mono" for="weightInput">TODAY · KG</label>
+            <div class="weight-row">
+              <input type="number" inputmode="decimal" id="weightInput" min="20" max="400" step="0.1" placeholder="72.5" aria-label="Today's body weight in kilograms">
+              <button type="submit" class="btn btn-primary btn-sm">Log weight</button>
+              <button type="button" class="btn btn-sm btn-ghost" id="resetWeightBtn" title="Delete all weight entries">Reset</button>
+            </div>
+            <span class="mono weight-hint" id="weightHint">First weigh-in? Log it above — one entry per day.</span>
+          </form>
+        </div>
+        <div class="weight-chart-wrap" id="weightChartWrap">
+          <svg id="weightChart" class="weight-chart" role="img" aria-label="Body weight trend, last 30 days"></svg>
+          <div class="weight-chart-foot mono"><span id="wRangeStart">—</span><span id="wRangeMeta">LAST 30 DAYS · 0 ENTRIES</span><span id="wRangeEnd">—</span></div>
+        </div>
+      </div>
+    </section>
+
   </main>
 
   <!-- INSIGHTS STRIP -->
