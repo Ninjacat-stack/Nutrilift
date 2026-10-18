@@ -29,7 +29,7 @@ function saveStorage(data) {
 }
 
 // — Central Data Model (source of truth) —
-// { theme, exercises:[{name,sets,load}], stackDefs:[{name,dose}], prs:[{lift,best,date}], days:{ "YYYY-MM-DD": {lifts:[bool], stack:[bool], fuel:{protein,carbs,fats,kcal}} }, activeProgram }
+// { theme, exercises:[{name,sets,load}], stackDefs:[{name,dose}], prs:[{lift,best,date}], days:{ "YYYY-MM-DD": {lifts:[bool], stack:[bool], fuel:{protein,carbs,fats,kcal}} }, bodyweight:{ "YYYY-MM-DD": kg }, activeProgram }
 
 // — Security: escape HTML before innerHTML —
 function escapeHTML(s){ return String(s||"").replace(/[&<>"']/g, c=> ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
@@ -507,6 +507,87 @@ function initWeekInsights(){
   }
 }
 
+// — Body Weight — one entry per day, 365d retained, 30d trend chart —
+const WEIGHT_DAYS_TO_KEEP = 365;
+function dateKeyOf(d){ return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`; }
+function monthDayLabel(k){ const p=k.split("-"); return `${MONTHS[parseInt(p[1],10)-1]} ${p[2]}`; }
+function validateWeight(v){ const errs=[]; if(Number.isNaN(v)) errs.push("Enter a weight in kg"); else if(v<20||v>400) errs.push("Weight must be 20–400 kg"); return errs; }
+function loadBodyweight(){ const d=loadStorage(); return d.bodyweight||{}; }
+function pruneOldWeight(data){
+  if(!data.bodyweight) return;
+  const cutoff=new Date(); cutoff.setDate(cutoff.getDate()-WEIGHT_DAYS_TO_KEEP); const ck=dateKeyOf(cutoff);
+  Object.keys(data.bodyweight).forEach(k=>{ if(k<ck) delete data.bodyweight[k]; });
+}
+function saveBodyweight(map){ const d=loadStorage(); d.bodyweight=map; pruneOldWeight(d); saveStorage(d); }
+function renderWeightStats(){
+  const bw=loadBodyweight(); const keys=Object.keys(bw).filter(k=>typeof bw[k]==="number").sort(); const lk=keys[keys.length-1];
+  const cur=document.getElementById("wCurrent"); if(cur) cur.textContent= lk? `${bw[lk]} kg` : "—";
+  const curD=document.getElementById("wCurrentDate"); if(curD) curD.textContent= lk? `${monthDayLabel(lk)} · latest` : "no entries yet";
+  const head=document.getElementById("weightHead"); if(head) head.textContent= keys.length? `${keys.length} entr${keys.length===1?"y":"ies"} · 365d kept` : "No entries yet";
+  const deltaFor=back=>{ if(!lk) return null; const ref=new Date(); ref.setDate(ref.getDate()-back); const rk=dateKeyOf(ref); let found=null; keys.forEach(k=>{ if(k<=rk) found=k; }); if(!found||found===lk) return null; return bw[lk]-bw[found]; };
+  const setD=(id,d)=>{ const el=document.getElementById(id); if(!el) return; if(d===null){ el.textContent="—"; el.classList.remove("flat"); return; } const r=Math.round(d*10)/10; el.textContent=(r>0?`▲ +${r}`:r<0?`▼ ${r}`:"= 0")+" kg"; el.classList.toggle("flat", r===0); };
+  setD("wDelta7", deltaFor(7)); setD("wDelta30", deltaFor(30));
+  const tv=bw[todayKey()];
+  const input=document.getElementById("weightInput");
+  if(input && document.activeElement!==input) input.value= tv!==undefined? String(tv) : "";
+  const hint=document.getElementById("weightHint");
+  if(hint) hint.textContent= tv!==undefined? `Today logged: ${tv} kg — saving again updates it.` : (lk? `Last entry: ${bw[lk]} kg on ${monthDayLabel(lk)}.` : "First weigh-in? Log it above — one entry per day.");
+}
+function renderWeightChart(){
+  const wrap=document.getElementById("weightChartWrap"), svg=document.getElementById("weightChart"); if(!wrap||!svg) return;
+  const bw=loadBodyweight(); const today=new Date(); const pts=[];
+  for(let i=29;i>=0;i--){ const d=new Date(today); d.setDate(today.getDate()-i); const k=dateKeyOf(d); const v=bw[k]; if(typeof v==="number") pts.push({t:d.getTime(),v,k}); }
+  const startD=new Date(today); startD.setDate(startD.getDate()-29);
+  const w=Math.max(260, wrap.clientWidth||600), h=172, padX=16, padTop=20, padBot=16, base=h-padBot;
+  svg.setAttribute("viewBox",`0 0 ${w} ${h}`);
+  const start=startD.getTime(), span=Math.max(1, today.getTime()-start);
+  const X=t=> padX + (t-start)/span*(w-2*padX);
+  let g="";
+  [padTop,(padTop+base)/2,base].forEach(y=>{ g+=`<line class="wc-grid" x1="${padX}" y1="${y.toFixed(1)}" x2="${w-padX}" y2="${y.toFixed(1)}"/>`; });
+  if(!pts.length){
+    g+=`<text class="wc-empty" x="${(w/2).toFixed(1)}" y="${((base+padTop)/2).toFixed(1)}">No weigh-ins in the last 30 days — log one above</text>`;
+  } else {
+    const vs=pts.map(p=>p.v); let lo=Math.min(...vs), hi=Math.max(...vs);
+    if(hi-lo<2){ const mid=(hi+lo)/2; lo=mid-1; hi=mid+1; } else { lo-=0.3; hi+=0.3; }
+    const Y=v=> padTop + (hi-v)/(hi-lo)*(base-padTop);
+    g+=`<text class="wc-label" x="${w-padX}" y="${(Y(hi)+11).toFixed(1)}" text-anchor="end">${hi.toFixed(1)} kg</text>`;
+    g+=`<text class="wc-label" x="${w-padX}" y="${(Y(lo)-5).toFixed(1)}" text-anchor="end">${lo.toFixed(1)} kg</text>`;
+    const cs=pts.map(p=>[X(p.t),Y(p.v)]);
+    if(cs.length>1){
+      g+=`<defs><linearGradient id="wgArea" x1="0" y1="0" x2="0" y2="1"><stop class="wg-top" offset="0"/><stop class="wg-bot" offset="1"/></linearGradient></defs>`;
+      g+=`<path class="wc-area" d="M ${cs[0][0].toFixed(1)},${base} L ${cs.map(c=>`${c[0].toFixed(1)},${c[1].toFixed(1)}`).join(" L ")} L ${cs[cs.length-1][0].toFixed(1)},${base} Z"/>`;
+      g+=`<polyline class="wc-line" points="${cs.map(c=>`${c[0].toFixed(1)},${c[1].toFixed(1)}`).join(" ")}"/>`;
+    }
+    cs.forEach((c,i)=>{ const last=i===cs.length-1; g+=`<circle class="${last?"wc-today":"wc-dot"}" cx="${c[0].toFixed(1)}" cy="${c[1].toFixed(1)}" r="${last?4.2:2.8}"><title>${escapeHTML(pts[i].k)} — ${pts[i].v} kg</title></circle>`; });
+  }
+  svg.innerHTML=g;
+  const rs=document.getElementById("wRangeStart"); if(rs) rs.textContent= pts.length? monthDayLabel(pts[0].k) : "—";
+  const re=document.getElementById("wRangeEnd"); if(re) re.textContent= pts.length? monthDayLabel(todayKey()) : "—";
+  const rm=document.getElementById("wRangeMeta"); if(rm) rm.textContent=`LAST 30 DAYS · ${pts.length} ENTR${pts.length===1?"Y":"IES"}`;
+}
+function initBodyWeight(){
+  const panel=document.getElementById("weightPanel"); if(!panel) return;
+  const form=document.getElementById("weightForm"), input=document.getElementById("weightInput"), resetBtn=document.getElementById("resetWeightBtn");
+  const refresh=()=>{ renderWeightStats(); renderWeightChart(); };
+  refresh();
+  let rz=null; window.addEventListener("resize",()=>{ clearTimeout(rz); rz=setTimeout(renderWeightChart,150); });
+  form?.addEventListener("submit",e=>{
+    e.preventDefault();
+    const v=parseFloat(input?.value); const errs=validateWeight(v);
+    const oldErr=form.querySelector(".form-error"); if(oldErr) oldErr.remove();
+    if(errs.length){ const el=document.createElement("div"); el.className="form-error mono"; el.style.cssText="color:var(--iron-red); font-size:11px; padding:4px 0;"; el.textContent=errs.join(" · "); form.appendChild(el); input?.focus(); return; }
+    const kg=Math.round(v*10)/10; const bw=loadBodyweight(); const prev=bw[todayKey()];
+    bw[todayKey()]=kg; saveBodyweight(bw); refresh();
+    window.NutriliftToast&&window.NutriliftToast(prev!==undefined? `Today's weight updated: ${kg} kg` : `Weight logged: ${kg} kg`);
+  });
+  resetBtn?.addEventListener("click",()=>{
+    const bw=loadBodyweight(); if(!Object.keys(bw).length){ window.NutriliftToast&&window.NutriliftToast("No entries to reset"); return; }
+    if(!confirm("Delete all body weight entries? This cannot be undone.")) return;
+    const d=loadStorage(); delete d.bodyweight; saveStorage(d); refresh();
+    window.NutriliftToast&&window.NutriliftToast("Body weight log cleared");
+  });
+}
+
 // — Reveal — clean fade + slight rise only
 function initReveal() {
   const prefersReduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -807,7 +888,7 @@ function initHistoryPage(){
   const cal=document.getElementById("historyCal"); if(!cal) return;
   const data=loadStorage();
   // prune on load so calendar never shows >90d ghost data
-  const beforeCount=Object.keys(data.days||{}).length; pruneOldDays(data); if(Object.keys(data.days||{}).length!==beforeCount) saveStorage(data);
+  const beforeCount=Object.keys(data.days||{}).length+Object.keys(data.bodyweight||{}).length; pruneOldDays(data); pruneOldWeight(data); if(Object.keys(data.days||{}).length+Object.keys(data.bodyweight||{}).length!==beforeCount) saveStorage(data);
   const days=data.days||{};
   const fmt=k=>k.slice(5).replace("-","/"); const today=new Date();
   let streak=computeStreak(data), total=Object.keys(days).length;
@@ -830,8 +911,8 @@ function initHistoryPage(){
     const fuelDays=Object.values(days).filter(d=>d.fuel); const avgKcal=fuelDays.length?Math.round(fuelDays.reduce((a,d)=>a+(d.fuel.kcal||0),0)/fuelDays.length):0;
     breakdown.innerHTML=`<div class="recent-row"><span>Lifts logged</span><span class="mono">${Object.values(days).reduce((a,d)=>a+(d.lifts?.filter(Boolean).length||0),0)}</span></div><div class="recent-row"><span>Stack taken</span><span class="mono">${taken}/${possible}</span></div><div class="recent-row"><span>Avg kcal</span><span class="mono">${avgKcal} kcal</span></div><div class="recent-row"><span>Best streak</span><span class="mono">${computeLongestStreak(data)} days</span></div>`;
   }
-  const detail=document.getElementById("dayDetail"); cal.addEventListener("click",e=>{ const b=e.target.closest(".cal-day"); if(!b||!detail) return; const k=b.dataset.k; const v=days[k]; const f=v?.fuel; detail.style.display="block"; detail.innerHTML=v?`<strong class="mono">${k}</strong> — ${(v.lifts?.filter(Boolean).length||0)} lifts · ${(v.stack?.filter(Boolean).length||0)} stack${f?` · ${f.kcal} kcal (${f.protein}P ${f.carbs}C ${f.fats}F)`:""}`:`<span class="mono">${k}: no data</span>`; });
-  const doExport=()=>{ const rows=[["date","lifts_done","stack_done","protein","carbs","fats","kcal"]]; Object.keys(days).sort().forEach(k=>{ const d=days[k]; const f=d.fuel||{protein:0,carbs:0,fats:0,kcal:0}; rows.push([k, (d.lifts?.filter(Boolean).length||0), (d.stack?.filter(Boolean).length||0), f.protein, f.carbs, f.fats, f.kcal]); }); const csv=rows.map(r=>r.join(",")).join("\n"); const blob=new Blob([csv],{type:"text/csv"}); const a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download="nutrilift-history.csv"; a.click(); window.NutriliftToast&&window.NutriliftToast("CSV with fuel downloaded"); };
+  const detail=document.getElementById("dayDetail"); const bw=data.bodyweight||{}; cal.addEventListener("click",e=>{ const b=e.target.closest(".cal-day"); if(!b||!detail) return; const k=b.dataset.k; const v=days[k]; const f=v?.fuel; const wgt=bw[k]; detail.style.display="block"; detail.innerHTML=v||wgt?`<strong class="mono">${k}</strong> — ${(v?.lifts?.filter(Boolean).length||0)} lifts · ${(v?.stack?.filter(Boolean).length||0)} stack${f?` · ${f.kcal} kcal (${f.protein}P ${f.carbs}C ${f.fats}F)`:""}${wgt?` · ${wgt} kg`:""}`:`<span class="mono">${k}: no data</span>`; });
+  const doExport=()=>{ const rows=[["date","lifts_done","stack_done","protein","carbs","fats","kcal","weight_kg"]]; Object.keys(days).sort().forEach(k=>{ const d=days[k]; const f=d.fuel||{protein:0,carbs:0,fats:0,kcal:0}; rows.push([k, (d.lifts?.filter(Boolean).length||0), (d.stack?.filter(Boolean).length||0), f.protein, f.carbs, f.fats, f.kcal, bw[k]??""]); }); const csv=rows.map(r=>r.join(",")).join("\n"); const blob=new Blob([csv],{type:"text/csv"}); const a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download="nutrilift-history.csv"; a.click(); window.NutriliftToast&&window.NutriliftToast("CSV with fuel + weight downloaded"); };
   const doClear=()=>{ if(!confirm("Clear 90-day history?")) return; data.days={}; saveStorage(data); location.reload(); };
   ["exportBtn","footerExport"].forEach(id=>{ const e=document.getElementById(id); if(e) e.addEventListener("click",e=>{e.preventDefault(); doExport();}); });
   ["clearBtn","footerClear"].forEach(id=>{ const e=document.getElementById(id); if(e) e.addEventListener("click",e=>{e.preventDefault(); doClear();}); });
@@ -1116,6 +1197,7 @@ document.addEventListener("DOMContentLoaded", () => {
   initStackAdherence();
   loadPersistedState();
   initFuel();
+  initBodyWeight();
   initWeekInsights();
   initReveal();
   initTilt3D();
