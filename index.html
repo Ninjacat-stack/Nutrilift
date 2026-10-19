@@ -369,7 +369,13 @@
     <section class="panel weight-panel" id="weightPanel" aria-label="Body Weight">
       <div class="panel-head">
         <h2>Body Weight</h2>
-        <span class="adherence mono" id="weightHead">No entries yet</span>
+        <div class="weight-head-right">
+          <div class="weight-ranges" role="group" aria-label="Chart range">
+            <button type="button" class="active" data-range="30" aria-pressed="true">30D</button>
+            <button type="button" data-range="90" aria-pressed="false">90D</button>
+          </div>
+          <span class="adherence mono" id="weightHead">No entries yet</span>
+        </div>
       </div>
       <div class="weight-layout">
         <div class="weight-side">
@@ -379,9 +385,12 @@
             <div class="weight-stat"><span class="mono">30-DAY Δ</span><strong id="wDelta30" class="w-delta">—</strong><span class="mono weight-sub">vs last month</span></div>
           </div>
           <form id="weightForm" class="weight-form">
-            <label class="mono" for="weightInput">TODAY · KG</label>
+            <label class="mono" for="weightInput">TODAY · KG · GOAL</label>
             <div class="weight-row">
               <input type="number" inputmode="decimal" id="weightInput" min="20" max="400" step="0.1" placeholder="72.5" aria-label="Today's body weight in kilograms">
+              <input type="number" inputmode="decimal" id="weightGoal" min="20" max="400" step="0.1" placeholder="Goal kg" aria-label="Goal body weight in kilograms (optional)">
+            </div>
+            <div class="weight-row">
               <button type="submit" class="btn btn-primary btn-sm">Log weight</button>
               <button type="button" class="btn btn-sm btn-ghost" id="resetWeightBtn" title="Delete all weight entries">Reset</button>
             </div>
@@ -391,6 +400,7 @@
         <div class="weight-chart-wrap" id="weightChartWrap">
           <svg id="weightChart" class="weight-chart" role="img" aria-label="Body weight trend, last 30 days"></svg>
           <div class="weight-chart-foot mono"><span id="wRangeStart">—</span><span id="wRangeMeta">LAST 30 DAYS · 0 ENTRIES</span><span id="wRangeEnd">—</span></div>
+          <div class="weight-legend mono"><span><i class="wl-line"></i>WEIGHT</span><span><i class="wl-dash"></i>7D AVG</span><span><i class="wl-goal"></i>GOAL</span><span class="wl-hint">Click a dot to delete</span></div>
         </div>
       </div>
     </section>
