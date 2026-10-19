@@ -47,6 +47,12 @@ function validateStack(name,dose){
 function validatePr(lift,best,date){
   const errs=[]; if(!lift||lift.trim().length<2) errs.push("Lift name required"); if(!best||!/\d/.test(best)) errs.push("Best must include number (e.g. 95 kg)"); if(!date||date.trim().length<3) errs.push("Date required"); return errs;
 }
+function showFormError(form, errs){
+  if(!form) return;
+  const old=form.querySelector(".form-error"); if(old) old.remove();
+  if(!errs||!errs.length) return;
+  const el=document.createElement("div"); el.className="form-error mono"; el.style.cssText="color:var(--iron-red); font-size:11px; padding:4px 0;"; el.textContent=errs.join(" · "); form.appendChild(el);
+}
 
 function pruneOldDays(data) {
   if (!data.days) return;
@@ -420,8 +426,7 @@ function initFuel(){
   form.addEventListener("submit",e=>{
     e.preventDefault();
     let p=parseInt(document.getElementById("mProtein").value)||0, c=parseInt(document.getElementById("mCarbs").value)||0, f=parseInt(document.getElementById("mFats").value)||0, k=parseInt(document.getElementById("mKcal").value)||0;
-    const errs=validateMeal(p,c,f,k); let errEl=form.querySelector(".form-error"); if(errEl) errEl.remove();
-    if(errs.length){ errEl=document.createElement("div"); errEl.className="form-error mono"; errEl.style.cssText="color:var(--iron-red); font-size:11px; padding:4px 0;"; errEl.textContent=errs.join(" · "); form.appendChild(errEl); return; }
+    const errs=validateMeal(p,c,f,k); showFormError(form,errs); if(errs.length) return;
     if(!k && (p||c||f)) k = p*4 + c*4 + f*9;
     const cur=getFuelToday(); const next={ protein:Math.min(600,cur.protein+p), carbs:Math.min(800,cur.carbs+c), fats:Math.min(300,cur.fats+f), kcal:Math.min(6000,cur.kcal+k) };
     saveFuelToday(next); updateFuelUI(next); updateHeroMetrics(); form.reset(); form.hidden=true;
@@ -456,7 +461,7 @@ function initStackEditable(){
   list.addEventListener("click",e=>{ const del=e.target.closest(".del-stack"); if(!del) return; del.closest("li").remove(); const remaining=collect(); if(!remaining.length) list.innerHTML=`<li class="mono" style="text-align:center; padding:12px; color:var(--muted); border:1px dashed var(--line); border-radius:8px;">No supplements yet — add one.</li>`; saveStackDefs(remaining); updateStackAdherence(); persistCurrentState(); window.NutriliftToast&&window.NutriliftToast("Supplement removed"); });
   addBtn?.addEventListener("click",()=>{ form.hidden=!form.hidden; if(!form.hidden) document.getElementById("stackName")?.focus(); });
   cancelBtn?.addEventListener("click",()=>{ form.hidden=true; form.reset(); const err=form.querySelector(".form-error"); if(err) err.remove(); });
-  form?.addEventListener("submit",e=>{ e.preventDefault(); const n=sanitizeText(document.getElementById("stackName").value,40), d=sanitizeText(document.getElementById("stackDose").value,30)||"—"; const errs=validateStack(n,d); let errEl=form.querySelector(".form-error"); if(errEl) errEl.remove(); if(errs.length){ errEl=document.createElement("div"); errEl.className="form-error mono"; errEl.style.cssText="color:var(--iron-red); font-size:11px; padding:4px 0;"; errEl.textContent=errs.join(" · "); form.appendChild(errEl); return; } if(list.querySelector('li mono')||list.querySelector('[style*="dashed"]')) list.innerHTML=""; const li=document.createElement("li"); li.className="pill-card"; li.setAttribute("data-taken","false"); li.innerHTML=`<div class="pill-label"><span class="pill-name" contenteditable="true" spellcheck="false">${escapeHTML(n)}</span><span class="pill-dose mono" contenteditable="true" spellcheck="false">${escapeHTML(d)}</span></div><div style="display:flex; gap:6px; align-items:center;"><button type="button" class="pop-btn" aria-pressed="false" aria-label="Mark taken"><span class="pop"></span></button><button type="button" class="del-stack icon-btn" aria-label="Delete" title="Delete">×</button></div>`; list.appendChild(li); saveStackDefs(collect()); updateStackAdherence(); persistCurrentState(); form.reset(); form.hidden=true; window.NutriliftToast&&window.NutriliftToast("Supplement added"); });
+  form?.addEventListener("submit",e=>{ e.preventDefault(); const n=sanitizeText(document.getElementById("stackName").value,40), d=sanitizeText(document.getElementById("stackDose").value,30)||"—"; const errs=validateStack(n,d); showFormError(form,errs); if(errs.length) return; if(list.querySelector('li mono')||list.querySelector('[style*="dashed"]')) list.innerHTML=""; const li=document.createElement("li"); li.className="pill-card"; li.setAttribute("data-taken","false"); li.innerHTML=`<div class="pill-label"><span class="pill-name" contenteditable="true" spellcheck="false">${escapeHTML(n)}</span><span class="pill-dose mono" contenteditable="true" spellcheck="false">${escapeHTML(d)}</span></div><div style="display:flex; gap:6px; align-items:center;"><button type="button" class="pop-btn" aria-pressed="false" aria-label="Mark taken"><span class="pop"></span></button><button type="button" class="del-stack icon-btn" aria-label="Delete" title="Delete">×</button></div>`; list.appendChild(li); saveStackDefs(collect()); updateStackAdherence(); persistCurrentState(); form.reset(); form.hidden=true; window.NutriliftToast&&window.NutriliftToast("Supplement added"); });
   resetBtn?.addEventListener("click",()=>{ if(!confirm("Reset stack to default?")) return; saveStackDefs(DEFAULT_STACK); location.reload(); });
 }
 // — PRs — persisted, editable —
@@ -492,14 +497,16 @@ function computeLongestStreak(data){
 function initWeekInsights(){
   const data=loadStorage(), days=data.days||{};
   // week chart: last 7 days Mon-Sun
+  let taken=0, possible=0; Object.values(days).forEach(d=>{ if(d.stack){ taken+=d.stack.filter(Boolean).length; possible+=d.stack.length; }});
+  const adh=possible?Math.round(taken/possible*100):0;
   const cols=document.querySelectorAll(".week-chart .day-col"); if(cols.length===7){
     const today=new Date(); const dayIdx=today.getDay(); const monday=new Date(today); monday.setDate(today.getDate()-((dayIdx+6)%7));
-    cols.forEach((col,i)=>{ const d=new Date(monday); d.setDate(monday.getDate()+i); const k=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`; const v=days[k]; const vol=v? (v.lifts?.filter(Boolean).length||0) : 0; col.style.setProperty("--vol", vol); });
+    cols.forEach((col,i)=>{ const d=new Date(monday); d.setDate(monday.getDate()+i); const k=dateKeyOf(d); const v=days[k]; const vol=v? (v.lifts?.filter(Boolean).length||0) : 0; col.style.setProperty("--vol", vol); });
     const totalWeek=Array.from(cols).reduce((a,c)=>a+parseInt(c.style.getPropertyValue("--vol")||0),0);
-    const ws=document.getElementById("weekSummary"); if(ws) ws.textContent=`${totalWeek?Math.ceil(totalWeek/2):0} sessions · ${(() => { let t=0,p=0; Object.values(days).forEach(d=>{ if(d.stack){t+=d.stack.filter(Boolean).length; p+=d.stack.length;}}); return p?Math.round(t/p*100):0; })()}% stack adherence`;
+    const ws=document.getElementById("weekSummary"); if(ws) ws.textContent=`${totalWeek?Math.ceil(totalWeek/2):0} sessions · ${adh}% stack adherence`;
   }
   const longest=computeLongestStreak(data); const ls=document.getElementById("insightStreak"); if(ls) ls.textContent=`${longest} days`;
-  const adhEl=document.getElementById("insightAdherence"); if(adhEl){ let t=0,p=0; Object.values(days).forEach(d=>{ if(d.stack){t+=d.stack.filter(Boolean).length; p+=d.stack.length;}}); adhEl.textContent=(p?Math.round(t/p*100):0)+"%"; }
+  const adhEl=document.getElementById("insightAdherence"); if(adhEl) adhEl.textContent=adh+"%";
   const volEl=document.getElementById("insightVolume"); if(volEl){
     const now=Object.values(days).slice(-7).reduce((a,d)=>a+(d.lifts?.filter(Boolean).length||0),0);
     const prev=Object.values(days).slice(-14,-7).reduce((a,d)=>a+(d.lifts?.filter(Boolean).length||0),0);
@@ -519,8 +526,10 @@ function pruneOldWeight(data){
   Object.keys(data.bodyweight).forEach(k=>{ if(k<ck) delete data.bodyweight[k]; });
 }
 function saveBodyweight(map){ const d=loadStorage(); d.bodyweight=map; pruneOldWeight(d); saveStorage(d); }
-function renderWeightStats(){
-  const bw=loadBodyweight(); const keys=Object.keys(bw).filter(k=>typeof bw[k]==="number").sort(); const lk=keys[keys.length-1];
+let weightRangeDays = 30;
+function loadWeightGoal(){ const d=loadStorage(); const g=d.weightGoal; return typeof g==="number"?g:null; }
+function renderWeightStats(bw=loadBodyweight()){
+  const keys=Object.keys(bw).filter(k=>typeof bw[k]==="number").sort(); const lk=keys[keys.length-1];
   const cur=document.getElementById("wCurrent"); if(cur) cur.textContent= lk? `${bw[lk]} kg` : "—";
   const curD=document.getElementById("wCurrentDate"); if(curD) curD.textContent= lk? `${monthDayLabel(lk)} · latest` : "no entries yet";
   const head=document.getElementById("weightHead"); if(head) head.textContent= keys.length? `${keys.length} entr${keys.length===1?"y":"ies"} · 365d kept` : "No entries yet";
@@ -533,49 +542,81 @@ function renderWeightStats(){
   const hint=document.getElementById("weightHint");
   if(hint) hint.textContent= tv!==undefined? `Today logged: ${tv} kg — saving again updates it.` : (lk? `Last entry: ${bw[lk]} kg on ${monthDayLabel(lk)}.` : "First weigh-in? Log it above — one entry per day.");
 }
-function renderWeightChart(){
+function renderWeightChart(bw=loadBodyweight()){
   const wrap=document.getElementById("weightChartWrap"), svg=document.getElementById("weightChart"); if(!wrap||!svg) return;
-  const bw=loadBodyweight(); const today=new Date(); const pts=[];
-  for(let i=29;i>=0;i--){ const d=new Date(today); d.setDate(today.getDate()-i); const k=dateKeyOf(d); const v=bw[k]; if(typeof v==="number") pts.push({t:d.getTime(),v,k}); }
-  const startD=new Date(today); startD.setDate(startD.getDate()-29);
+  const today=new Date(), range=weightRangeDays, pts=[];
+  for(let i=range-1;i>=0;i--){ const d=new Date(today); d.setDate(today.getDate()-i); const k=dateKeyOf(d); const v=bw[k]; if(typeof v==="number") pts.push({t:d.getTime(),v,k}); }
+  const startD=new Date(today); startD.setDate(startD.getDate()-(range-1));
   const w=Math.max(260, wrap.clientWidth||600), h=172, padX=16, padTop=20, padBot=16, base=h-padBot;
   svg.setAttribute("viewBox",`0 0 ${w} ${h}`);
+  svg.setAttribute("aria-label",`Body weight trend, last ${range} days`);
   const start=startD.getTime(), span=Math.max(1, today.getTime()-start);
   const X=t=> padX + (t-start)/span*(w-2*padX);
   let g="";
   [padTop,(padTop+base)/2,base].forEach(y=>{ g+=`<line class="wc-grid" x1="${padX}" y1="${y.toFixed(1)}" x2="${w-padX}" y2="${y.toFixed(1)}"/>`; });
   if(!pts.length){
-    g+=`<text class="wc-empty" x="${(w/2).toFixed(1)}" y="${((base+padTop)/2).toFixed(1)}">No weigh-ins in the last 30 days — log one above</text>`;
+    g+=`<text class="wc-empty" x="${(w/2).toFixed(1)}" y="${((base+padTop)/2).toFixed(1)}">No weigh-ins in the last ${range} days — log one above</text>`;
   } else {
     const vs=pts.map(p=>p.v); let lo=Math.min(...vs), hi=Math.max(...vs);
+    const goal=loadWeightGoal(), showGoal=goal!==null && goal>=lo-12 && goal<=hi+12;
+    if(showGoal){ lo=Math.min(lo,goal); hi=Math.max(hi,goal); }
     if(hi-lo<2){ const mid=(hi+lo)/2; lo=mid-1; hi=mid+1; } else { lo-=0.3; hi+=0.3; }
     const Y=v=> padTop + (hi-v)/(hi-lo)*(base-padTop);
     g+=`<text class="wc-label" x="${w-padX}" y="${(Y(hi)+11).toFixed(1)}" text-anchor="end">${hi.toFixed(1)} kg</text>`;
     g+=`<text class="wc-label" x="${w-padX}" y="${(Y(lo)-5).toFixed(1)}" text-anchor="end">${lo.toFixed(1)} kg</text>`;
+    if(showGoal){
+      g+=`<line class="wc-goal" x1="${padX}" y1="${Y(goal).toFixed(1)}" x2="${w-padX}" y2="${Y(goal).toFixed(1)}"/>`;
+      g+=`<text class="wc-goal-label" x="${padX+2}" y="${(Y(goal)-5).toFixed(1)}">GOAL ${goal.toFixed(1)}</text>`;
+    }
     const cs=pts.map(p=>[X(p.t),Y(p.v)]);
     if(cs.length>1){
       g+=`<defs><linearGradient id="wgArea" x1="0" y1="0" x2="0" y2="1"><stop class="wg-top" offset="0"/><stop class="wg-bot" offset="1"/></linearGradient></defs>`;
       g+=`<path class="wc-area" d="M ${cs[0][0].toFixed(1)},${base} L ${cs.map(c=>`${c[0].toFixed(1)},${c[1].toFixed(1)}`).join(" L ")} L ${cs[cs.length-1][0].toFixed(1)},${base} Z"/>`;
       g+=`<polyline class="wc-line" points="${cs.map(c=>`${c[0].toFixed(1)},${c[1].toFixed(1)}`).join(" ")}"/>`;
+      const trend=pts.map((p,i)=>{ let sum=0,n=0; for(let j=i;j>=0 && p.t-pts[j].t<=7*864e5;j--){ sum+=pts[j].v; n++; } return [X(p.t),Y(sum/n)]; });
+      g+=`<polyline class="wc-trend" points="${trend.map(c=>`${c[0].toFixed(1)},${c[1].toFixed(1)}`).join(" ")}"/>`;
     }
-    cs.forEach((c,i)=>{ const last=i===cs.length-1; g+=`<circle class="${last?"wc-today":"wc-dot"}" cx="${c[0].toFixed(1)}" cy="${c[1].toFixed(1)}" r="${last?4.2:2.8}"><title>${escapeHTML(pts[i].k)} — ${pts[i].v} kg</title></circle>`; });
+    cs.forEach((c,i)=>{ const k=escapeHTML(pts[i].k), v=pts[i].v, last=i===cs.length-1; const x=c[0].toFixed(1), y=c[1].toFixed(1);
+      g+=`<circle class="wc-hit" cx="${x}" cy="${y}" r="10" data-date="${k}"/>`;
+      g+=`<circle class="${last?"wc-today":"wc-dot"}" cx="${x}" cy="${y}" r="${last?4.2:2.8}" data-date="${k}"><title>${k} — ${v} kg</title></circle>`;
+    });
   }
   svg.innerHTML=g;
   const rs=document.getElementById("wRangeStart"); if(rs) rs.textContent= pts.length? monthDayLabel(pts[0].k) : "—";
   const re=document.getElementById("wRangeEnd"); if(re) re.textContent= pts.length? monthDayLabel(todayKey()) : "—";
-  const rm=document.getElementById("wRangeMeta"); if(rm) rm.textContent=`LAST 30 DAYS · ${pts.length} ENTR${pts.length===1?"Y":"IES"}`;
+  const rm=document.getElementById("wRangeMeta"); if(rm) rm.textContent=`LAST ${range} DAYS · ${pts.length} ENTR${pts.length===1?"Y":"IES"}`;
 }
 function initBodyWeight(){
   const panel=document.getElementById("weightPanel"); if(!panel) return;
-  const form=document.getElementById("weightForm"), input=document.getElementById("weightInput"), resetBtn=document.getElementById("resetWeightBtn");
-  const refresh=()=>{ renderWeightStats(); renderWeightChart(); };
-  refresh();
-  let rz=null; window.addEventListener("resize",()=>{ clearTimeout(rz); rz=setTimeout(renderWeightChart,150); });
+  const form=document.getElementById("weightForm"), input=document.getElementById("weightInput"), goalInput=document.getElementById("weightGoal"), resetBtn=document.getElementById("resetWeightBtn"), chart=document.getElementById("weightChart");
+  weightRangeDays = loadStorage().weightRange===90 ? 90 : 30;
+  const syncRange=()=> panel.querySelectorAll("[data-range]").forEach(b=>{ const on=parseInt(b.dataset.range,10)===weightRangeDays; b.classList.toggle("active",on); b.setAttribute("aria-pressed",String(on)); });
+  const refresh=()=>{ const bw=loadBodyweight(); renderWeightStats(bw); renderWeightChart(bw); };
+  syncRange(); refresh();
+  const goal=loadWeightGoal(); if(goalInput && goal!==null) goalInput.value=String(goal);
+  let rz=null; window.addEventListener("resize",()=>{ clearTimeout(rz); rz=setTimeout(()=>renderWeightChart(),150); });
+  panel.querySelectorAll("[data-range]").forEach(b=> b.addEventListener("click",()=>{
+    const r=parseInt(b.dataset.range,10); if(r===weightRangeDays) return;
+    weightRangeDays=r; const d=loadStorage(); d.weightRange=r; saveStorage(d); syncRange(); renderWeightChart();
+  }));
+  goalInput?.addEventListener("change",()=>{
+    const raw=goalInput.value.trim(), d=loadStorage();
+    if(!raw){ showFormError(form,[]); delete d.weightGoal; saveStorage(d); renderWeightChart(); window.NutriliftToast&&window.NutriliftToast("Goal weight cleared"); return; }
+    const v=parseFloat(raw), errs=validateWeight(v); showFormError(form,errs); if(errs.length) return;
+    d.weightGoal=Math.round(v*10)/10; saveStorage(d); goalInput.value=String(d.weightGoal); renderWeightChart();
+    window.NutriliftToast&&window.NutriliftToast(`Goal set: ${d.weightGoal} kg`);
+  });
+  chart?.addEventListener("click",e=>{
+    const dot=e.target.closest("[data-date]"); if(!dot) return;
+    const k=dot.getAttribute("data-date"), bw=loadBodyweight(); if(bw[k]===undefined) return;
+    if(!confirm(`Delete weight entry for ${k} (${bw[k]} kg)?`)) return;
+    delete bw[k]; saveBodyweight(bw); refresh();
+    window.NutriliftToast&&window.NutriliftToast(`Weight entry for ${k} removed`);
+  });
   form?.addEventListener("submit",e=>{
     e.preventDefault();
-    const v=parseFloat(input?.value); const errs=validateWeight(v);
-    const oldErr=form.querySelector(".form-error"); if(oldErr) oldErr.remove();
-    if(errs.length){ const el=document.createElement("div"); el.className="form-error mono"; el.style.cssText="color:var(--iron-red); font-size:11px; padding:4px 0;"; el.textContent=errs.join(" · "); form.appendChild(el); input?.focus(); return; }
+    const v=parseFloat(input?.value); const errs=validateWeight(v); showFormError(form,errs);
+    if(errs.length){ input?.focus(); return; }
     const kg=Math.round(v*10)/10; const bw=loadBodyweight(); const prev=bw[todayKey()];
     bw[todayKey()]=kg; saveBodyweight(bw); refresh();
     window.NutriliftToast&&window.NutriliftToast(prev!==undefined? `Today's weight updated: ${kg} kg` : `Weight logged: ${kg} kg`);
@@ -659,22 +700,29 @@ function initBowShoot(){
   let tx=innerWidth/2, ty=innerHeight/2, px=tx, py=ty;
   let lastX=tx, lastY=ty, tAngle=0, angle=0, tShoot=0, shootAngle=0, recoil=1;
   const norm=a=>{ while(a>180)a-=360; while(a<=-180)a+=360; return a; };
+  // rAF runs only until the cursor settles — idle pages cost zero frames
+  let rafId=0, running=false;
+  const settled=()=> Math.abs(tx-px)<0.3 && Math.abs(ty-py)<0.3 && Math.abs(norm(tAngle-angle))<0.3 && Math.abs(1-recoil)<0.01;
   const bowLoop=()=>{
     px+=(tx-px)*0.35; py+=(ty-py)*0.35;
     angle+=norm(tAngle-angle)*0.3;
     recoil+=(1-recoil)*0.2;
     bow.style.left=px+'px'; bow.style.top=py+'px';
     bow.style.transform=`translate(-50%,-50%) rotate(${angle.toFixed(2)}deg) scale(${recoil.toFixed(3)})`;
-    requestAnimationFrame(bowLoop);
+    if(settled()){ running=false; rafId=0; return; }
+    rafId=requestAnimationFrame(bowLoop);
   };
-  requestAnimationFrame(bowLoop);
+  const startBow=()=>{ if(!running){ running=true; rafId=requestAnimationFrame(bowLoop); } };
+  const stopBow=()=>{ if(rafId) cancelAnimationFrame(rafId); rafId=0; running=false; };
+  startBow();
   document.addEventListener('mousemove', e=>{
     const dx=e.clientX-lastX, dy=e.clientY-lastY;
     if(Math.hypot(dx,dy)>1.5){ const mv=Math.atan2(dy,dx)*180/Math.PI; tShoot=norm(mv+180); shootAngle=tShoot; tAngle=shootAngle; }
-    tx=e.clientX; ty=e.clientY; lastX=e.clientX; lastY=e.clientY; bow.classList.add('show');
+    tx=e.clientX; ty=e.clientY; lastX=e.clientX; lastY=e.clientY; bow.classList.add('show'); startBow();
   }, {passive:true});
-  document.addEventListener('mouseleave', ()=> bow.classList.remove('show'));
-  document.addEventListener('mouseenter', ()=> bow.classList.add('show'));
+  document.addEventListener('mouseleave', ()=>{ bow.classList.remove('show'); stopBow(); });
+  document.addEventListener('mouseenter', ()=>{ bow.classList.add('show'); startBow(); });
+  document.addEventListener('visibilitychange', ()=>{ if(document.hidden) stopBow(); else startBow(); });
   // archery board — dblclick spawns it on the predicted flight path (same physics as the shot)
   const V=16, GRAV=0.22, BOARD_R=60;
   let board=null, flying=false, cooldownUntil=0;
@@ -713,7 +761,7 @@ function initBowShoot(){
     el.innerHTML=`<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 28 12' width='28' height='12'><line x1='2' y1='6' x2='20' y2='6' stroke='#211714' stroke-width='1.6' stroke-linecap='round'/><path d='M20 6 L14 2 L14 10 Z' fill='#C81E3D' stroke='#8F2438' stroke-width='0.7' stroke-linejoin='round'/><path d='M2 3 L6 6 L2 9' fill='none' stroke='#9A8A83' stroke-width='1' stroke-linecap='round' stroke-linejoin='round'/></svg>`;
     el.style.left=(startX-14)+'px'; el.style.top=(startY-7)+'px'; el.style.transform=`rotate(${ang}deg)`; el.style.opacity='1';
     document.body.appendChild(el);
-    flying=true; recoil=0.85;
+    flying=true; recoil=0.85; startBow();
     // physics: velocity + gravity (same constants the board was placed with)
     const rad=ang*Math.PI/180; let vx=Math.cos(rad)*V, vy=Math.sin(rad)*V, ax=startX, ay=startY;
     const btns= board ? [] : Array.from(document.querySelectorAll('button, a.btn, [role="button"]')).filter(b=> !b.closest('#bowCursor') && b.offsetParent!==null && !b.disabled);
