@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Browse, explore, and log meals with daily nutrition tracking in Nutrilift.">
+  <meta name="theme-color" content="#C81E3D"><title>Meals — Nutrilift</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet"><link rel="stylesheet" href="style.css">
+  <script>(function(){try{var s=JSON.parse(localStorage.getItem('nutrilift:v1')||'{}');document.documentElement.dataset.theme=s.theme||(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light')}catch(e){}})();</script>
+</head>
+<body class="meals-page">
+  <a href="#mealsContent" class="skip-link">Skip to meals</a>
+  <div class="scene-bg" aria-hidden="true"><div class="scene-grid"></div><div class="orb orb-1"></div></div>
+  <header class="masthead">
+    <div class="masthead-left"><a href="index.html" class="wordmark"><span class="mark"></span>NUTRILIFT<span class="dot">.</span></a></div>
+    <nav class="masthead-center" aria-label="Primary"><a href="index.html#log">Log</a><a href="index.html#stack">Stack</a><a href="index.html#week">Week</a><a href="programs.html">Programs</a><a href="meals.html" class="active">Meals</a><a href="meal-plans.html">Meal Plans</a><a href="history.html">History</a><a href="showcase.html">Showcase</a></nav>
+    <button type="button" id="mobileNavToggle" class="mobile-toggle" aria-label="Toggle navigation" aria-expanded="false" aria-controls="mobileNav">☰</button>
+    <nav id="mobileNav" class="mobile-nav" aria-hidden="true" aria-label="Mobile"><a href="index.html#log">Log</a><a href="programs.html">Programs</a><a href="meals.html">Meals</a><a href="meal-plans.html">Meal Plans</a><a href="history.html">History</a><a href="showcase.html">Showcase</a></nav>
+    <div class="masthead-right"><span class="date-badge mono" id="dateBadge"></span><span class="streak">STREAK <strong class="mono" id="streakCount">0</strong> DAYS</span><button id="themeToggle" class="mode-switch" aria-pressed="false" aria-label="Switch to dark mode"><span class="switch-track"><span class="switch-thumb"></span></span><span class="switch-label">DARK</span></button></div>
+  </header>
+  <main class="content meals-content" id="mealsContent">
+    <section class="meals-hero"><span class="mono eyebrow">NUTRILIFT · FOOD LOG</span><h1>GOOD FOOD.<br><span class="accent">CLEAR NUMBERS.</span></h1><p>Find a meal that fits, check what goes into it, and log it to your day. Your meal log feeds the same protein, carb, fat, and calorie totals as Fuel Today.</p></section>
+    <section class="panel daily-nutrition" aria-labelledby="dailyNutritionTitle">
+      <div class="daily-nutrition-head"><div><span class="mono eyebrow">DAILY TOTALS</span><h2 id="dailyNutritionTitle">Nutrition summary</h2></div><label class="meal-date-label">Log date<input id="mealLogDate" type="date" aria-label="Meal log date"></label></div>
+      <div class="daily-nutrition-grid" id="mealNutritionSummary" aria-live="polite"></div>
+      <p class="daily-nutrition-note">Includes logged meals and any nutrition added from Fuel Today.</p>
+    </section>
+    <div class="meals-columns">
+      <section class="panel meal-library" aria-labelledby="mealLibraryTitle">
+        <div class="panel-head"><div><span class="mono eyebrow">BROWSE</span><h2 id="mealLibraryTitle">Meal catalogue</h2></div><span class="mono meal-count" id="mealResultCount" aria-live="polite"></span></div>
+        <div class="meal-filters">
+          <label class="meal-search">Search meals<input id="mealSearch" type="search" placeholder="Name or ingredient" autocomplete="off"></label>
+          <label>Meal type<select id="mealTypeFilter"><option value="all">All types</option><option value="breakfast">Breakfast</option><option value="lunch">Lunch</option><option value="dinner">Dinner</option><option value="snack">Snack</option></select></label>
+          <label>Dietary preference<select id="mealDietFilter"><option value="all">Any diet</option><option value="vegetarian">Vegetarian · no eggs</option><option value="vegan">Vegan</option><option value="pescatarian">Pescatarian</option><option value="gluten-free">Gluten-free</option></select></label>
+          <label>Nutrition goal<select id="mealGoalFilter"><option value="all">Any goal</option><option value="higher-protein">Higher protein</option><option value="balanced">Balanced</option><option value="lighter">Lighter meal</option></select></label>
+        </div>
+        <p class="meal-catalog-note">Nutrition values are estimates for the listed serving. Use package labels where available; edit logged values to match your portion.</p>
+        <div class="meal-catalog-grid" id="mealCatalog" aria-live="polite" aria-busy="true"><p class="meal-initial-loading">Loading meal catalogue…</p></div>
+      </section>
+      <section class="panel daily-meal-log" aria-labelledby="dailyLogTitle">
+        <div class="panel-head"><div><span class="mono eyebrow">YOUR DAY</span><h2 id="dailyLogTitle">Meal log</h2></div><div class="meal-log-head-actions"><span class="mono" id="loggedMealCount">0 MEALS</span><button type="button" class="btn btn-sm btn-outline" id="customMealBtn">+ Custom meal</button></div></div>
+        <p class="meal-log-hint">Add a catalogue meal or log your own. You can change portions, nutrition, date, and meal type.</p>
+        <div id="dailyMealLog" aria-live="polite"></div>
+      </section>
+    </div>
+  </main>
+  <dialog class="meal-dialog" id="mealDetailDialog" aria-labelledby="mealDetailTitle">
+    <div class="meal-dialog-head"><span class="mono eyebrow">MEAL DETAILS</span><button type="button" class="icon-btn" data-close-dialog="mealDetailDialog" aria-label="Close meal details">×</button></div>
+    <div id="mealDetailBody"></div>
+  </dialog>
+  <dialog class="meal-dialog meal-edit-dialog" id="mealEntryDialog" aria-labelledby="mealEntryTitle">
+    <div class="meal-dialog-head"><div><span class="mono eyebrow">DAILY MEAL LOG</span><h2 id="mealEntryTitle">Log a meal</h2></div><button type="button" class="icon-btn" data-close-dialog="mealEntryDialog" aria-label="Close meal form">×</button></div>
+    <form id="mealEntryForm" class="meal-entry-form">
+      <input type="hidden" name="entryId"><input type="hidden" name="sourceDate"><input type="hidden" name="mealId">
+      <label>Meal name<input name="name" maxlength="80" required></label>
+      <div class="meal-entry-row"><label>Meal type<select name="type" required><option value="breakfast">Breakfast</option><option value="lunch">Lunch</option><option value="dinner">Dinner</option><option value="snack">Snack</option></select></label><label>Date<input name="date" type="date" required></label></div>
+      <div class="meal-entry-row"><label>Servings<input name="servings" type="number" min="0.25" max="10" step="0.25" value="1" required></label><label>Serving size<input name="servingSize" maxlength="60" required></label></div>
+      <fieldset class="meal-nutrition-fields"><legend>Nutrition per serving</legend><div class="meal-entry-row"><label>Protein (g)<input name="protein" type="number" min="0" max="3000" step="0.1" required></label><label>Carbs (g)<input name="carbs" type="number" min="0" max="3000" step="0.1" required></label></div><div class="meal-entry-row"><label>Fat (g)<input name="fats" type="number" min="0" max="3000" step="0.1" required></label><label>Calories<input name="kcal" type="number" min="0" max="6000" step="1" required></label></div></fieldset>
+      <p class="meal-entry-error mono" id="mealEntryError" role="alert" hidden></p>
+      <div class="meal-entry-actions"><button type="button" class="btn btn-ghost" data-close-dialog="mealEntryDialog">Cancel</button><button type="submit" class="btn btn-primary" id="saveMealEntry">Add to log</button></div>
+    </form>
+  </dialog>
+  <footer class="site-footer"><div class="footer-bottom mono"><span>© <span id="footerYear">2026</span> Nutrilift · Food logged, progress tracked.</span><a href="index.html">Back to dashboard</a></div></footer>
+  <div id="toastStack" class="toast-stack" aria-live="polite"></div><script src="script.js"></script>
+</body>
+</html>
