@@ -4,7 +4,7 @@
 
 Nutrilift is a fast, local-first web app to log lifts, track supplement adherence, and keep the streak alive. No backend, no bloat — just a focused dashboard that feels like a modern product site: minimal, aesthetic, premium, with subtle 3D accents and a cinematic Showcase tour.
 
-Live pages: `index.html` → Dashboard · `programs.html` → Program Library · `history.html` → 90-Day History · `showcase.html` → Cinematic Tour · `404.html` → Not found
+Live pages: `index.html` → Dashboard · `programs.html` → Program Library · `meals.html` → Meal Catalogue + Daily Log · `meal-plans.html` → Personalized Meal Plans · `history.html` → 90-Day History · `showcase.html` → Cinematic Tour · `404.html` → Not found
 
 ---
 
@@ -15,6 +15,8 @@ Live pages: `index.html` → Dashboard · `programs.html` → Program Library ·
 - **Today's Stack** — Editable supplement list (add/delete/rename), one-tap pop buttons, live adherence %.
 - **This Week** — 7-day volume chart (plate stacks) computed from real logs + live week summary.
 - **Fuel Today** — Protein / Carbs / Fats / Calories bars with targets (165P · 240C · 70F · 2200kcal), _Add Meal_ form with presets (Whey / Meal / Snack), auto kcal estimate, over-target glow. Saved per day.
+- **Personalized Meal Plans** (`meal-plans.html`) — Goal and activity-based calorie/macro starting estimates, vegetarian (no eggs), vegan, pescatarian, and higher-protein meal filters, ingredient exclusions, refreshable sample days drawn from the shared meal catalogue, and a saved local profile.
+- **Meals** (`meals.html`) — Searchable meal catalogue with type, dietary, and nutrition-goal filters; ingredient and preparation details; and an editable dated meal diary with custom entries. Logged meals contribute to the same daily protein, carb, fat, and calorie totals as Fuel Today.
 - **Body Weight** — One weigh-in per day (kg) from the dashboard: Current / 7-day Δ / 30-day Δ stats plus a 30- or 90-day SVG trend chart (area fill, 7-day rolling average, optional goal line, per-point tooltips, click a dot to delete). Kept for 365 days, shown in day details and CSV export.
 - **Personal Records** — Editable PR table (add/delete), persisted; latest PR feeds the hero badge.
 - **Hero** — Live stats (logs this month, adherence, PRs tracked), last-6-days volume bars, live session label + stack preview. No fake numbers — everything renders from storage.
@@ -44,7 +46,7 @@ Live pages: `index.html` → Dashboard · `programs.html` → Program Library ·
 ### System
 - **Theme** — Light/Dark toggle (masthead), persisted, respects `prefers-color-scheme`, no-flash inline bootstrap.
 - **Header** — Floating sticky, shrinks on scroll (`is-scrolled`), backdrop blur, mobile nav.
-- **Storage** — `nutrilift:v1` { `theme`, `session`, `exercises[]`, `stackDefs[]`, `prs[]`, `bodyweight: { YYYY-MM-DD: kg }`, `weightGoal`, `weightRange`, `activeProgram`, `emails[]`, `archeryHits`, `beast`, `days: { YYYY-MM-DD: {lifts:[bool], stack:[bool], fuel:{}} }` } — `days` pruned to 90 days, `bodyweight` kept 365 days.
+- **Storage** — `nutrilift:v1` { `theme`, `session`, `exercises[]`, `stackDefs[]`, `prs[]`, `bodyweight: { YYYY-MM-DD: kg }`, `weightGoal`, `weightRange`, `activeProgram`, `emails[]`, `archeryHits`, `beast`, `days: { YYYY-MM-DD: {lifts:[bool], stack:[bool], fuel:{}, fuelManual:{}, meals:[{id, name, type, servings, servingSize, nutrition}] } }` } — `days` pruned to 90 days, `bodyweight` kept 365 days.
 - **Toast** — Minimal premium toast (`#toastStack`) with `aria-live`.
 - **Shortcuts** — `t` theme, `?` help, `Esc` closes modal.
 - **Accessibility** — Skip links, `aria-pressed`/`aria-invalid`, visible focus rings, keyboard-operable controls, `prefers-reduced-motion` respected.
@@ -102,6 +104,7 @@ Key entry points in code:
 - Bow + beast: `script.js:694` `initBowShoot`, `script.js:817` `initBeastMode`
 - History: `script.js:935` `initHistoryPage`
 - Showcase UI: `script.js:982` `initShowcase` (`SHOWCASE_DATA` single source of truth)
+- Meal catalogue + diary: `script.js` `initMealsPage` (static catalogue; dated log entries stored in `days`)
 - Programs: `script.js:1136` `initProgramsPage`
 - Styles: `style.css:4` tokens, masthead/hero/dashboard components, `SHOWCASE` section at the end
 

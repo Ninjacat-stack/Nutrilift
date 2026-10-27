@@ -25,11 +25,11 @@ function loadStorage() {
 }
 
 function saveStorage(data) {
-  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(data)); } catch(e){ console.error("Storage save failed", e); window.NutriliftToast&&window.NutriliftToast("Storage full — clear old history"); }
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(data)); return true; } catch(e){ console.error("Storage save failed", e); window.NutriliftToast&&window.NutriliftToast("Storage full — clear old history"); return false; }
 }
 
 // — Central Data Model (source of truth) —
-// { theme, exercises:[{name,sets,load}], stackDefs:[{name,dose}], prs:[{lift,best,date}], days:{ "YYYY-MM-DD": {lifts:[bool], stack:[bool], fuel:{protein,carbs,fats,kcal}} }, bodyweight:{ "YYYY-MM-DD": kg }, activeProgram }
+// { theme, exercises:[{name,sets,load}], stackDefs:[{name,dose}], prs:[{lift,best,date}], days:{ "YYYY-MM-DD": {lifts:[bool], stack:[bool], fuel:{protein,carbs,fats,kcal}, fuelManual:{}, meals:[{id,name,type,servings,servingSize,nutrition}] } }, bodyweight:{ "YYYY-MM-DD": kg }, activeProgram }
 
 // — Security: escape HTML before innerHTML —
 function escapeHTML(s){ return String(s||"").replace(/[&<>"']/g, c=> ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
@@ -397,10 +397,30 @@ function getFuelToday(){
   const d=loadStorage().days?.[todayKey()]?.fuel;
   return d || { protein:0, carbs:0, fats:0, kcal:0 };
 }
-function saveFuelToday(fuel){
+const MEAL_NUTRIENTS=["protein","carbs","fats","kcal"];
+function zeroFuel(){ return {protein:0,carbs:0,fats:0,kcal:0}; }
+function getLoggedMealNutrition(entries=[]){
+  return entries.reduce((sum,entry)=>{
+    const servings=Number(entry.servings)||0, nutrition=entry.nutrition||{};
+    MEAL_NUTRIENTS.forEach(key=>{ sum[key]+=Math.round((Number(nutrition[key])||0)*servings); });
+    return sum;
+  },zeroFuel());
+}
+function getManualFuel(day={}){
+  if(day.fuelManual) return {...zeroFuel(),...day.fuelManual};
+  const total={...zeroFuel(),...(day.fuel||{})}, mealFuel=getLoggedMealNutrition(day.meals||[]);
+  return Object.fromEntries(MEAL_NUTRIENTS.map(key=>[key,Math.max(0,(Number(total[key])||0)-mealFuel[key])]));
+}
+function rebuildDayFuel(day={}){
+  if(!day.fuelManual) day.fuelManual=getManualFuel(day);
+  const manual={...zeroFuel(),...day.fuelManual}, meals=getLoggedMealNutrition(day.meals||[]);
+  day.fuel=Object.fromEntries(MEAL_NUTRIENTS.map(key=>[key,(Number(manual[key])||0)+meals[key]]));
+  return day.fuel;
+}
+function saveFuelManualToday(fuel){
   const data=loadStorage(); const k=todayKey();
   if(!data.days) data.days={}; if(!data.days[k]) data.days[k]={ lifts:[], stack:[] };
-  data.days[k].fuel=fuel; pruneOldDays(data); saveStorage(data);
+  data.days[k].fuelManual=fuel; rebuildDayFuel(data.days[k]); pruneOldDays(data); return saveStorage(data);
 }
 function updateFuelUI(fuel){
   const t=FUEL_TARGETS;
@@ -420,7 +440,7 @@ function initFuel(){
   updateFuelUI(getFuelToday());
   addBtn.addEventListener("click",()=>{ form.hidden=!form.hidden; if(!form.hidden) document.getElementById("mProtein")?.focus(); });
   cancelBtn?.addEventListener("click",()=>{ form.hidden=true; form.reset(); });
-  resetBtn?.addEventListener("click",()=>{ saveFuelToday({protein:0,carbs:0,fats:0,kcal:0}); updateFuelUI(getFuelToday()); window.NutriliftToast&&window.NutriliftToast("Fuel reset for today"); });
+  resetBtn?.addEventListener("click",()=>{ saveFuelManualToday(zeroFuel()); updateFuelUI(getFuelToday()); window.NutriliftToast&&window.NutriliftToast("Manual fuel cleared; logged meals kept"); });
   const presets={ whey:{p:25,c:3,f:2,k:130}, meal:{p:35,c:45,f:15,k:455}, snack:{p:10,c:20,f:8,k:190} };
   form.querySelectorAll("[data-preset]").forEach(b=> b.addEventListener("click",()=>{ const pr=presets[b.dataset.preset]; if(!pr) return; document.getElementById("mProtein").value=pr.p; document.getElementById("mCarbs").value=pr.c; document.getElementById("mFats").value=pr.f; document.getElementById("mKcal").value=pr.k; }));
   form.addEventListener("submit",e=>{
@@ -428,8 +448,8 @@ function initFuel(){
     let p=parseInt(document.getElementById("mProtein").value)||0, c=parseInt(document.getElementById("mCarbs").value)||0, f=parseInt(document.getElementById("mFats").value)||0, k=parseInt(document.getElementById("mKcal").value)||0;
     const errs=validateMeal(p,c,f,k); showFormError(form,errs); if(errs.length) return;
     if(!k && (p||c||f)) k = p*4 + c*4 + f*9;
-    const cur=getFuelToday(); const next={ protein:Math.min(600,cur.protein+p), carbs:Math.min(800,cur.carbs+c), fats:Math.min(300,cur.fats+f), kcal:Math.min(6000,cur.kcal+k) };
-    saveFuelToday(next); updateFuelUI(next); updateHeroMetrics(); form.reset(); form.hidden=true;
+    const data=loadStorage(), day=data.days?.[todayKey()]||{}, cur=getManualFuel(day); const next={ protein:Math.min(600,cur.protein+p), carbs:Math.min(800,cur.carbs+c), fats:Math.min(300,cur.fats+f), kcal:Math.min(6000,cur.kcal+k) };
+    saveFuelManualToday(next); const total=getFuelToday(); updateFuelUI(total); updateHeroMetrics(); form.reset(); form.hidden=true;
     const btn=form.querySelector('button[type="submit"]'); const orig=btn.textContent; btn.textContent="Saving…"; btn.disabled=true; setTimeout(()=>{ btn.textContent=orig; btn.disabled=false; window.NutriliftToast&&window.NutriliftToast(`+${p}P · +${c}C · +${f}F · +${k} kcal saved`); }, 450);
   });
   // fuel persists to history export automatically via days[date].fuel
@@ -852,6 +872,8 @@ function initActiveNav(){
   document.querySelectorAll(".masthead-center a").forEach(a=>{
     const href=a.getAttribute("href")||""; a.classList.remove("active");
     if(href==="programs.html" && path==="programs.html") a.classList.add("active");
+    else if(href==="meals.html" && path==="meals.html") a.classList.add("active");
+    else if(href==="meal-plans.html" && path==="meal-plans.html") a.classList.add("active");
     else if(href==="history.html" && path==="history.html") a.classList.add("active");
     else if(href==="showcase.html" && path==="showcase.html") a.classList.add("active");
     else if(href.startsWith("#") && path==="index.html" && location.hash===href) a.classList.add("active");
@@ -922,6 +944,11 @@ function initToasts() {
     }, 2600);
   }
   window.NutriliftToast = show;
+  // message queued before a reload (e.g. CSV import) — show it once after load
+  try {
+    const flash = sessionStorage.getItem("nutrilift:flash");
+    if (flash) { sessionStorage.removeItem("nutrilift:flash"); show(flash); }
+  } catch (e) {}
   document.addEventListener("click", (e) => {
     const btn = e.target.closest("[data-toast]");
     if (!btn) return;
@@ -929,6 +956,10 @@ function initToasts() {
     if (msg) show(msg);
   });
   // inline forms fallback already call window.NutriliftToast directly
+}
+
+function flashToast(msg) {
+  try { sessionStorage.setItem("nutrilift:flash", msg); } catch (e) {}
 }
 
 // — History page — 90d calendar + export (verified 90 days inclusive) —
@@ -964,6 +995,197 @@ function initHistoryPage(){
   const doClear=()=>{ if(!confirm("Clear 90-day history?")) return; data.days={}; saveStorage(data); location.reload(); };
   ["exportBtn","footerExport"].forEach(id=>{ const e=document.getElementById(id); if(e) e.addEventListener("click",e=>{e.preventDefault(); doExport();}); });
   ["clearBtn","footerClear"].forEach(id=>{ const e=document.getElementById(id); if(e) e.addEventListener("click",e=>{e.preventDefault(); doClear();}); });
+}
+
+// — CSV import — mirrors Export CSV; merges day counts, fuel and weigh-ins —
+const CSV_COLUMN_ALIASES = {
+  date: "date", day: "date",
+  lifts_done: "lifts", lifts: "lifts",
+  stack_done: "stack", stack: "stack",
+  protein: "protein", protein_g: "protein",
+  carbs: "carbs", carbs_g: "carbs",
+  fats: "fats", fat: "fats", fats_g: "fats",
+  kcal: "kcal", calories: "kcal",
+  weight_kg: "weight", weight: "weight"
+};
+
+// RFC-4180-ish parser: quoted fields, escaped quotes, CRLF/LF, BOM, blank lines
+function parseCSV(text) {
+  const rows = []; let row = [], field = "", inQuotes = false;
+  const s = String(text || "").replace(/^\uFEFF/, "");
+  for (let i = 0; i < s.length; i++) {
+    const ch = s[i];
+    if (inQuotes) {
+      if (ch === '"') {
+        if (s[i + 1] === '"') { field += '"'; i++; } else inQuotes = false;
+      } else field += ch;
+      continue;
+    }
+    if (ch === '"') inQuotes = true;
+    else if (ch === ",") { row.push(field); field = ""; }
+    else if (ch === "\n" || ch === "\r") {
+      if (ch === "\r" && s[i + 1] === "\n") i++;
+      row.push(field); field = ""; rows.push(row); row = [];
+    } else field += ch;
+  }
+  if (field !== "" || row.length) { row.push(field); rows.push(row); }
+  return rows.filter(r => r.some(c => String(c).trim() !== ""));
+}
+
+function csvColumnMap(headerRow) {
+  const map = {};
+  headerRow.forEach((h, i) => {
+    const key = String(h).trim().toLowerCase().replace(/[\s-]+/g, "_");
+    const col = CSV_COLUMN_ALIASES[key];
+    if (col && map[col] === undefined) map[col] = i;
+  });
+  return map;
+}
+
+function parseISODateKey(k) {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(k)) return null;
+  const [y, m, d] = k.split("-").map(Number);
+  const dt = new Date(y, m - 1, d);
+  return dt.getFullYear() === y && dt.getMonth() === m - 1 && dt.getDate() === d ? dt : null;
+}
+
+function csvNumber(v) {
+  if (v === undefined || v === null) return null;
+  const s = String(v).trim().replace(/[,\s]/g, "");
+  if (s === "") return null;
+  const n = Number(s);
+  return Number.isFinite(n) ? n : NaN;
+}
+
+// Mutates `data` in memory (caller prunes + saves). Never lowers existing counts.
+function importHistoryCSV(text, data) {
+  const rows = parseCSV(text);
+  const summary = { days: 0, weights: 0, skipped: 0, older: 0, total: 0 };
+  if (rows.length < 2) return { summary, error: "CSV needs a header row and at least one data row" };
+  const map = csvColumnMap(rows[0]);
+  if (map.date === undefined) return { summary, error: "No date column found — export a CSV from this page to see the format" };
+
+  const today = todayKey();
+  const dayCut = new Date(); dayCut.setDate(dayCut.getDate() - DAYS_TO_KEEP);
+  const dayCutKey = dateKeyOf(dayCut);
+  const weightCut = new Date(); weightCut.setDate(weightCut.getDate() - WEIGHT_DAYS_TO_KEEP);
+  const weightCutKey = dateKeyOf(weightCut);
+  const exLen = Math.max(1, loadExercises().length);
+  const stackLen = Math.max(1, loadStackDefs().length);
+  if (!data.days) data.days = {};
+  if (!data.bodyweight) data.bodyweight = {};
+
+  const cell = (row, col) => col === undefined ? undefined : row[col];
+  const clamp = (n, max) => n === null ? 0 : Math.min(max, Math.max(0, Math.round(n)));
+
+  for (let r = 1; r < rows.length; r++) {
+    const row = rows[r]; summary.total++;
+    const raw = String(cell(row, map.date) || "").trim();
+    if (!parseISODateKey(raw) || raw > today) { summary.skipped++; continue; }
+
+    const liftsN = csvNumber(cell(row, map.lifts));
+    const stackN = csvNumber(cell(row, map.stack));
+    const p = csvNumber(cell(row, map.protein));
+    const c = csvNumber(cell(row, map.carbs));
+    const f = csvNumber(cell(row, map.fats));
+    const k = csvNumber(cell(row, map.kcal));
+    const w = csvNumber(cell(row, map.weight));
+    if ([liftsN, stackN, p, c, f, k, w].some(n => Number.isNaN(n))) { summary.skipped++; continue; }
+
+    const dayInWindow = raw >= dayCutKey;
+    const weightInWindow = raw >= weightCutKey;
+    const liftsDone = clamp(liftsN, exLen);
+    const stackDone = clamp(stackN, stackLen);
+    const fuelVals = { protein: clamp(p, 300), carbs: clamp(c, 800), fats: clamp(f, 300), kcal: clamp(k, 6000) };
+    const hasFuel = Object.values(fuelVals).some(v => v > 0);
+    let didDay = false, didWeight = false;
+
+    if (dayInWindow && (liftsDone > 0 || stackDone > 0 || hasFuel || data.days[raw])) {
+      const prev = data.days[raw] || {};
+      const prevLifts = Array.isArray(prev.lifts) ? prev.lifts : [];
+      const prevStack = Array.isArray(prev.stack) ? prev.stack : [];
+      const mergedLifts = Math.min(Math.max(prevLifts.length, exLen), Math.max(prevLifts.filter(Boolean).length, liftsDone));
+      const mergedStack = Math.min(Math.max(prevStack.length, stackLen), Math.max(prevStack.filter(Boolean).length, stackDone));
+      const next = { ...prev };
+      if (mergedLifts > 0 || prev.lifts) next.lifts = Array.from({ length: Math.max(prevLifts.length, exLen, mergedLifts) }, (_, i) => i < mergedLifts);
+      if (mergedStack > 0 || prev.stack) next.stack = Array.from({ length: Math.max(prevStack.length, stackLen, mergedStack) }, (_, i) => i < mergedStack);
+      if (hasFuel) {
+        next.fuel = { ...fuelVals, ...(prev.fuel || {}) };
+        ["protein", "carbs", "fats", "kcal"].forEach(key => { if (fuelVals[key] > 0) next.fuel[key] = fuelVals[key]; });
+        const loggedMeals = getLoggedMealNutrition(next.meals || []);
+        next.fuelManual = Object.fromEntries(MEAL_NUTRIENTS.map(key => [key, Math.max(0, (Number(next.fuel[key]) || 0) - loggedMeals[key])]));
+      }
+      data.days[raw] = next;
+      didDay = true;
+      summary.days++;
+    }
+
+    if (w !== null && w >= 20 && w <= 400 && weightInWindow) {
+      data.bodyweight[raw] = Math.round(w * 10) / 10;
+      didWeight = true;
+      summary.weights++;
+    }
+
+    if (!didDay && !didWeight) {
+      const hasWeight = w !== null;
+      const outside = hasWeight ? (!dayInWindow && !weightInWindow) : !dayInWindow;
+      if (outside) summary.older++; else summary.skipped++;
+    }
+  }
+  return { summary };
+}
+
+function initHistoryImport() {
+  const input = document.getElementById("importFile");
+  if (!input) return;
+  const triggers = ["importBtn", "footerImport"].map(id => document.getElementById(id)).filter(Boolean);
+  triggers.forEach(btn => btn.addEventListener("click", e => {
+    e.preventDefault();
+    input.value = "";
+    input.click();
+  }));
+  input.addEventListener("change", () => {
+    const file = input.files && input.files[0];
+    if (!file) return;
+    if (file.size > 1024 * 1024) {
+      window.NutriliftToast && window.NutriliftToast("CSV too large — keep it under 1 MB");
+      input.value = "";
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = () => {
+      const data = loadStorage();
+      const result = importHistoryCSV(String(reader.result || ""), data);
+      if (result.error) {
+        window.NutriliftToast && window.NutriliftToast(result.error);
+        return;
+      }
+      const s = result.summary;
+      if (!s.days && !s.weights) {
+        window.NutriliftToast && window.NutriliftToast("No importable rows found — check dates and values");
+        return;
+      }
+      const lines = [
+        `Import ${s.days} day${s.days === 1 ? "" : "s"} and ${s.weights} weigh-in${s.weights === 1 ? "" : "s"}?`,
+        "",
+        "Existing logs are merged — counts never go down."
+      ];
+      if (s.skipped) lines.push(`${s.skipped} row${s.skipped === 1 ? "" : "s"} skipped (bad date or value).`);
+      if (s.older) lines.push(`${s.older} row${s.older === 1 ? "" : "s"} outside the 90-day / 365-day window.`);
+      if (!confirm(lines.join("\n"))) return;
+
+      pruneOldDays(data);
+      pruneOldWeight(data);
+      saveStorage(data);
+      const parts = [];
+      if (s.days) parts.push(`${s.days} day${s.days === 1 ? "" : "s"}`);
+      if (s.weights) parts.push(`${s.weights} weigh-in${s.weights === 1 ? "" : "s"}`);
+      flashToast(`Imported ${parts.join(" + ")}`);
+      location.reload();
+    };
+    reader.onerror = () => window.NutriliftToast && window.NutriliftToast("Could not read that file");
+    reader.readAsText(file);
+  });
 }
 
 // — Showcase — single source of truth (edit here, page updates; no hardcoded duplicates) —
@@ -1232,6 +1454,163 @@ function initProgramsPage() {
   });
 }
 
+// — Personalized meal-plan builder (local estimate + editable preferences) —
+function initMealPlans(){
+  const form=document.getElementById("mealProfile"), output=document.getElementById("mealResults");
+  if(!form||!output) return;
+  const saved=loadStorage().mealProfile;
+  if(saved){
+    Object.entries(saved).forEach(([key,value])=>{
+      if(key==="avoid"){form.querySelectorAll('[name="avoid"]').forEach(input=>input.checked=value.includes(input.value));return;}
+      const input=form.elements.namedItem(key); if(input) input.value=value;
+    });
+  }
+  const meals=MEAL_CATALOG.map(meal=>({name:meal.name,type:meal.dietary.includes("vegan")?"vegan":meal.dietary.some(d=>["vegetarian","ovo-vegetarian"].includes(d))?"vegetarian":"high-protein",tags:meal.tags,p:meal.nutrition.protein,c:meal.nutrition.carbs,f:meal.nutrition.fats,k:meal.nutrition.kcal,items:meal.ingredients.join(" · ")}));
+  let profile={};
+  function draw(){
+    const f=form.elements, weight=Number(f.weight.value), height=Number(f.height.value), age=Number(f.age.value);
+    const activity=Number(f.activity.value), goal=f.goal.value, avoid=[...form.querySelectorAll('[name="avoid"]:checked')].map(x=>x.value);
+    const diet=f.diet.value;
+    if(!weight||!height||!age) return;
+    const base=10*weight+6.25*height-5*age+(f.sex.value==="male"?5:f.sex.value==="female"?-161:-78);
+    const maintenance=Math.round(base*activity/50)*50;
+    const kcal=Math.max(1200,Math.round((maintenance+(goal==="lose"?-300:goal==="gain"?200:0))/50)*50);
+    const protein=Math.round(weight*(goal==="gain"?1.8:1.6));
+    const fat=Math.round(kcal*0.28/9), carbs=Math.max(0,Math.round((kcal-protein*4-fat*9)/4));
+    const animalFoods=["eggs","fish","poultry","meat"];
+    const matchesDiet=m=>{
+      if(diet==="any") return true;
+      if(diet==="vegetarian") return !m.tags.some(tag=>animalFoods.includes(tag));
+      if(diet==="vegan") return m.type==="vegan";
+      if(diet==="pescatarian") return !m.tags.some(tag=>["poultry","meat"].includes(tag));
+      if(diet==="high-protein") return m.p>=30;
+      return true;
+    };
+    let pool=meals.filter(m=>!m.tags.some(t=>avoid.includes(t)) && matchesDiet(m));
+    const rotation=Number(loadStorage().mealRotation||0);
+    pool=pool.slice(rotation%Math.max(1,pool.length)).concat(pool.slice(0,rotation%Math.max(1,pool.length)));
+    const picks=[pool[0],pool[1],pool[2],pool[3]].filter(Boolean);
+    const labels=["BREAKFAST","LUNCH","SNACK","DINNER"];
+    output.innerHTML=`<div class="panel-head"><div><span class="mono eyebrow">YOUR SAMPLE DAY</span><h2>${goal==="lose"?"Steady cut":goal==="gain"?"Muscle-building":"Balanced maintenance"}</h2></div><button class="btn btn-sm btn-outline" type="button" id="refreshMeals">↻ Refresh meals</button></div>
+      <div class="meal-targets"><div><strong class="mono">${kcal.toLocaleString()}</strong><span>kcal / day</span></div><div><strong class="mono">${protein}g</strong><span>protein</span></div><div><strong class="mono">${carbs}g</strong><span>carbs</span></div><div><strong class="mono">${fat}g</strong><span>fat</span></div></div>
+      <p class="meal-target-note">Starting estimate based on your inputs · adjust portions to appetite and training.</p>
+      ${picks.length?`<div class="meal-list">${picks.map((m,i)=>`<article class="meal-card"><div class="meal-card-top"><span class="mono meal-label">${labels[i]||"OPTION"}</span><span class="mono meal-kcal">${m.k} kcal</span></div><h3>${m.name}</h3><p>${m.items}</p><div class="meal-macros mono"><span>${m.p}g protein</span><span>${m.c}g carbs</span><span>${m.f}g fat</span></div></article>`).join("")}</div>`:`<div class="meal-no-match"><strong>No meals match those filters yet.</strong><span>Try removing an ingredient exclusion or choosing another plan style. Your food preferences are still applied to every suggestion.</span></div>`}
+      <div class="meal-result-foot"><span class="mono">PROFILE SAVED ON THIS DEVICE</span><a href="index.html#fuelPanel" class="btn btn-sm btn-primary">Open fuel log →</a></div>`;
+    document.getElementById("refreshMeals").addEventListener("click",()=>{const data=loadStorage();data.mealRotation=Number(data.mealRotation||0)+1;saveStorage(data);draw();});
+  }
+  form.addEventListener("submit",event=>{event.preventDefault();const fd=new FormData(form);profile={goal:fd.get("goal"),activity:fd.get("activity"),weight:fd.get("weight"),height:fd.get("height"),age:fd.get("age"),sex:fd.get("sex"),diet:fd.get("diet"),avoid:fd.getAll("avoid")};const data=loadStorage();data.mealProfile=profile;saveStorage(data);draw();});
+  if(saved) draw();
+}
+
+// — Meal catalogue + daily meal diary — local-first, stored with days[date] —
+const MEAL_CATALOG=[
+  {id:"berry-yogurt",name:"Berry Greek yogurt bowl",type:"breakfast",dietary:["vegetarian","pescatarian"],tags:["dairy","gluten"],goals:["balanced","higher-protein"],serving:"1 bowl · 300 g",nutrition:{protein:24,carbs:38,fats:8,kcal:320},ingredients:["Greek yogurt","Mixed berries","Rolled oats","Chia seeds","Honey"],steps:["Spoon the yogurt into a bowl.","Top with berries, oats, and chia seeds.","Finish with a small drizzle of honey."]},
+  {id:"egg-avocado",name:"Egg & avocado toast",type:"breakfast",dietary:["ovo-vegetarian","pescatarian"],tags:["eggs","gluten"],goals:["balanced","higher-protein"],serving:"2 eggs · 1 slice toast",nutrition:{protein:23,carbs:32,fats:22,kcal:410},ingredients:["2 eggs","Whole-grain bread","Avocado","Tomato","Black pepper"],steps:["Toast the bread.","Cook the eggs to your preference.","Top toast with avocado, tomato, and eggs."]},
+  {id:"tofu-rice",name:"Tofu power bowl",type:"lunch",dietary:["vegan","vegetarian","gluten-free"],tags:["soy"],goals:["balanced","higher-protein"],serving:"1 bowl · 380 g",nutrition:{protein:29,carbs:58,fats:16,kcal:490},ingredients:["Firm tofu","Brown rice","Edamame","Spinach","Lime-tamari dressing"],steps:["Cook the rice according to its package.","Cube and pan-sear the tofu until golden.","Serve with edamame and spinach; add dressing to taste."]},
+  {id:"chicken-quinoa",name:"Chicken quinoa salad",type:"lunch",dietary:["gluten-free"],tags:["poultry"],goals:["higher-protein","lighter"],serving:"1 plate · 360 g",nutrition:{protein:42,carbs:39,fats:12,kcal:430},ingredients:["Chicken breast","Quinoa","Cucumber","Cherry tomatoes","Lemon and herbs"],steps:["Cook quinoa and let it cool slightly.","Grill chicken until fully cooked, then slice.","Toss with chopped vegetables, lemon, and herbs."]},
+  {id:"lentil-curry",name:"Lentil curry & rice",type:"dinner",dietary:["vegan","vegetarian","gluten-free"],tags:[],goals:["balanced","lighter"],serving:"1 bowl · 420 g",nutrition:{protein:22,carbs:68,fats:11,kcal:455},ingredients:["Red lentils","Basmati rice","Tomatoes","Light coconut milk","Curry spices"],steps:["Simmer lentils with tomatoes, spices, and a splash of water.","Add coconut milk and cook until the lentils soften.","Serve with cooked basmati rice."]},
+  {id:"salmon-potato",name:"Salmon & potato plate",type:"dinner",dietary:["pescatarian","gluten-free"],tags:["fish"],goals:["balanced","higher-protein"],serving:"1 plate · 340 g",nutrition:{protein:38,carbs:42,fats:18,kcal:485},ingredients:["Salmon fillet","Baby potatoes","Green beans","Olive oil","Lemon"],steps:["Roast halved potatoes until tender.","Bake or pan-cook salmon until it flakes easily.","Steam green beans and serve with lemon."]},
+  {id:"cottage-fruit",name:"Cottage cheese fruit cup",type:"snack",dietary:["vegetarian","pescatarian","gluten-free"],tags:["dairy"],goals:["lighter","higher-protein"],serving:"1 cup · 250 g",nutrition:{protein:27,carbs:28,fats:6,kcal:270},ingredients:["Cottage cheese","Banana","Blueberries","Pumpkin seeds"],steps:["Add cottage cheese to a cup.","Slice the banana and add it with blueberries.","Sprinkle pumpkin seeds over the top."]},
+  {id:"chickpea-wrap",name:"Chickpea hummus wrap",type:"lunch",dietary:["vegan","vegetarian"],tags:["gluten","sesame"],goals:["balanced","lighter"],serving:"1 wrap · 280 g",nutrition:{protein:19,carbs:54,fats:14,kcal:420},ingredients:["Chickpeas","Hummus","Whole-wheat wrap","Cucumber","Lettuce"],steps:["Mash chickpeas lightly with a spoonful of hummus.","Add cucumber and lettuce to the wrap.","Roll tightly and cut in half."]},
+  {id:"turkey-sweet-potato",name:"Turkey & sweet potato",type:"dinner",dietary:["gluten-free"],tags:["poultry"],goals:["higher-protein","lighter"],serving:"1 plate · 360 g",nutrition:{protein:40,carbs:43,fats:10,kcal:420},ingredients:["Lean turkey mince","Sweet potato","Broccoli","Garlic","Paprika"],steps:["Roast diced sweet potato until tender.","Cook turkey with garlic and paprika until fully cooked.","Steam broccoli and serve alongside."]},
+  {id:"banana-shake",name:"Peanut butter banana shake",type:"snack",dietary:["vegetarian","pescatarian"],tags:["dairy","nuts"],goals:["higher-protein","lighter"],serving:"1 shake · 350 ml",nutrition:{protein:30,carbs:34,fats:14,kcal:380},ingredients:["Milk","Whey protein","Banana","Peanut butter","Ice"],steps:["Add all ingredients to a blender.","Blend until smooth.","Add water or ice to adjust thickness."]}
+];
+const MEAL_DIET_LABELS={vegetarian:"Vegetarian",vegan:"Vegan",pescatarian:"Pescatarian","gluten-free":"Gluten-free","ovo-vegetarian":"Egg-inclusive vegetarian"};
+const MEAL_TYPE_LABELS={breakfast:"Breakfast",lunch:"Lunch",dinner:"Dinner",snack:"Snack"};
+function mealDateLimits(){
+  const today=new Date(), min=new Date(); min.setDate(min.getDate()-DAYS_TO_KEEP);
+  return {today:todayKey(),min:dateKeyOf(min)};
+}
+function initMealsPage(){
+  const page=document.querySelector(".meals-page"); if(!page) return;
+  const dateInput=document.getElementById("mealLogDate"), search=document.getElementById("mealSearch"), typeFilter=document.getElementById("mealTypeFilter"), dietFilter=document.getElementById("mealDietFilter"), goalFilter=document.getElementById("mealGoalFilter"), catalog=document.getElementById("mealCatalog"), diary=document.getElementById("dailyMealLog"), summary=document.getElementById("mealNutritionSummary"), count=document.getElementById("mealResultCount"), loggedCount=document.getElementById("loggedMealCount"), form=document.getElementById("mealEntryForm"), entryDialog=document.getElementById("mealEntryDialog"), detailDialog=document.getElementById("mealDetailDialog"), detailBody=document.getElementById("mealDetailBody"), error=document.getElementById("mealEntryError");
+  if(!dateInput||!catalog||!diary||!form||!entryDialog||!detailDialog) return;
+  const limits=mealDateLimits(); dateInput.min=limits.min; dateInput.max=limits.today; dateInput.value=limits.today;
+  const fmtN=(n)=>Number(n||0).toLocaleString(undefined,{maximumFractionDigits:1});
+  const isDietMatch=(meal,diet)=>{
+    if(diet==="all") return true;
+    if(diet==="vegetarian") return meal.dietary.includes("vegetarian")||meal.dietary.includes("vegan");
+    if(diet==="vegan") return meal.dietary.includes("vegan");
+    if(diet==="pescatarian") return meal.dietary.some(d=>["pescatarian","vegetarian","vegan","ovo-vegetarian"].includes(d));
+    return meal.dietary.includes(diet);
+  };
+  const renderCatalog=()=>{
+    catalog.setAttribute("aria-busy","true");
+    const q=(search.value||"").trim().toLowerCase(), type=typeFilter.value, diet=dietFilter.value, goal=goalFilter.value;
+    const matches=MEAL_CATALOG.filter(m=>{
+      const haystack=[m.name,m.type,...m.ingredients,...m.dietary,...m.goals].join(" ").toLowerCase();
+      const goalMatch=goal==="all"||m.goals.includes(goal);
+      return (!q||haystack.includes(q))&&(type==="all"||m.type===type)&&isDietMatch(m,diet)&&goalMatch;
+    });
+    count.textContent=`${matches.length} ${matches.length===1?"MEAL":"MEALS"}`;
+    catalog.innerHTML=matches.length?matches.map(m=>`<article class="meal-catalog-card"><div class="meal-card-top"><span class="mono meal-label">${MEAL_TYPE_LABELS[m.type].toUpperCase()}</span><span class="mono meal-kcal">${m.nutrition.kcal} kcal</span></div><h3>${escapeHTML(m.name)}</h3><p class="meal-card-serving">${escapeHTML(m.serving)}</p><div class="meal-catalog-meta"><span>${m.nutrition.protein}g protein</span><span>${m.nutrition.carbs}g carbs</span><span>${m.nutrition.fats}g fat</span></div><div class="meal-card-actions"><button type="button" class="btn btn-sm btn-ghost" data-meal-view="${m.id}">Details</button><button type="button" class="btn btn-sm btn-primary" data-meal-add="${m.id}">+ Add meal</button></div></article>`).join(""):`<div class="meal-catalog-empty"><strong>No meals found</strong><span>Try a different search or clear one of the filters.</span><button type="button" class="btn btn-sm btn-outline" id="clearMealFilters">Clear filters</button></div>`;
+    document.getElementById("clearMealFilters")?.addEventListener("click",()=>{search.value="";typeFilter.value="all";dietFilter.value="all";goalFilter.value="all";renderCatalog();});
+    catalog.setAttribute("aria-busy","false");
+  };
+  const selectedDate=()=>dateInput.value||limits.today;
+  const renderDay=()=>{
+    const data=loadStorage(), day=data.days?.[selectedDate()]||{}, fuel={...zeroFuel(),...(day.fuel||{})}, totals=[
+      ["protein","PROTEIN","g",FUEL_TARGETS.protein],["carbs","CARBS","g",FUEL_TARGETS.carbs],["fats","FAT","g",FUEL_TARGETS.fats],["kcal","CALORIES","kcal",FUEL_TARGETS.kcal]
+    ];
+    summary.innerHTML=totals.map(([key,label,unit,target])=>{const value=Number(fuel[key])||0,pct=Math.min(100,Math.round(value/target*100));return `<article class="meal-summary-card"><div><span class="mono">${label}</span><strong class="mono">${fmtN(value)}<small> / ${target} ${unit}</small></strong></div><div class="meal-summary-track" role="progressbar" aria-label="${label.toLowerCase()} progress" aria-valuemin="0" aria-valuemax="${target}" aria-valuenow="${Math.min(value,target)}"><span style="width:${pct}%"></span></div></article>`;}).join("");
+    const entries=Array.isArray(day.meals)?day.meals:[]; loggedCount.textContent=`${entries.length} ${entries.length===1?"MEAL":"MEALS"}`;
+    diary.innerHTML=entries.length?`<div class="daily-meal-list">${entries.map(entry=>{const n=entry.nutrition||zeroFuel(), servings=Number(entry.servings)||1, total=getLoggedMealNutrition([entry]);return `<article class="daily-meal-entry"><div class="daily-meal-entry-main"><div class="meal-card-top"><span class="mono meal-label">${escapeHTML(MEAL_TYPE_LABELS[entry.type]||"Meal").toUpperCase()} · ${fmtN(servings)} SERVING${servings===1?"":"S"}</span><span class="mono meal-kcal">${fmtN(total.kcal)} kcal</span></div><h3>${escapeHTML(entry.name)}</h3><p>${escapeHTML(entry.servingSize||"1 serving")} · ${fmtN(n.protein*servings)}P · ${fmtN(n.carbs*servings)}C · ${fmtN(n.fats*servings)}F</p></div><div class="daily-meal-actions"><button type="button" class="icon-btn" data-entry-edit="${escapeHTML(entry.id)}" aria-label="Edit ${escapeHTML(entry.name)}">✎</button><button type="button" class="icon-btn" data-entry-delete="${escapeHTML(entry.id)}" aria-label="Remove ${escapeHTML(entry.name)}" title="Remove">×</button></div></article>`;}).join("")}</div>`:`<div class="meal-log-empty"><strong>No meals logged for this date</strong><span>Browse the catalogue and add your first meal. Meals you add here contribute to the daily totals above.</span></div>`;
+  };
+  const showError=(message)=>{error.textContent=message;error.hidden=false;};
+  const clearError=()=>{error.textContent="";error.hidden=true;};
+  const setFormValues=(entry,date,editing=false)=>{
+    const values={entryId:editing?entry.id:"",sourceDate:editing?date:"",mealId:entry.mealId||"",name:entry.name,type:entry.type,date,servings:entry.servings||1,servingSize:entry.servingSize||"1 serving",protein:entry.nutrition?.protein??0,carbs:entry.nutrition?.carbs??0,fats:entry.nutrition?.fats??0,kcal:entry.nutrition?.kcal??0};
+    Object.entries(values).forEach(([key,value])=>{const field=form.elements.namedItem(key);if(field)field.value=value;});
+    form.elements.namedItem("date").min=limits.min;form.elements.namedItem("date").max=limits.today;
+    document.getElementById("mealEntryTitle").textContent=editing?"Edit logged meal":"Log a meal";
+    document.getElementById("saveMealEntry").textContent=editing?"Save changes":"Add to log";clearError();
+    entryDialog.showModal();
+  };
+  const openEntryForCatalog=(meal)=>setFormValues({mealId:meal.id,name:meal.name,type:meal.type,servings:1,servingSize:meal.serving,nutrition:meal.nutrition},selectedDate());
+  const openDetails=(meal)=>{
+    detailBody.innerHTML=`<h2 id="mealDetailTitle">${escapeHTML(meal.name)}</h2><p class="meal-detail-serving">${escapeHTML(MEAL_TYPE_LABELS[meal.type])} · ${escapeHTML(meal.serving)}</p><div class="meal-catalog-meta meal-detail-macros"><span>${meal.nutrition.protein}g protein</span><span>${meal.nutrition.carbs}g carbs</span><span>${meal.nutrition.fats}g fat</span><span>${meal.nutrition.kcal} kcal</span></div><h3>Ingredients</h3><ul class="meal-detail-ingredients">${meal.ingredients.map(item=>`<li>${escapeHTML(item)}</li>`).join("")}</ul><h3>Preparation</h3><ol class="meal-detail-steps">${meal.steps.map(step=>`<li>${escapeHTML(step)}</li>`).join("")}</ol><div class="meal-detail-footer"><span class="mono">${meal.dietary.map(d=>MEAL_DIET_LABELS[d]||d).join(" · ")}</span><button type="button" class="btn btn-primary" data-detail-add="${meal.id}">Add to daily log →</button></div>`;
+    detailDialog.showModal();
+  };
+  const ensureDay=(data,date)=>{if(!data.days)data.days={};if(!data.days[date])data.days[date]={lifts:[],stack:[]};const day=data.days[date];if(!day.fuelManual)day.fuelManual=getManualFuel(day);if(!Array.isArray(day.meals))day.meals=[];return day;};
+  const persistDayChanges=(data)=>{pruneOldDays(data);if(!saveStorage(data))return false;renderDay();window.NutriliftToast&&window.NutriliftToast("Meal log saved");return true;};
+  search.addEventListener("input",renderCatalog);[typeFilter,dietFilter,goalFilter].forEach(control=>control.addEventListener("change",renderCatalog));
+  dateInput.addEventListener("change",()=>{if(!parseISODateKey(dateInput.value)||dateInput.value>limits.today||dateInput.value<limits.min){dateInput.value=limits.today;window.NutriliftToast&&window.NutriliftToast("Choose a date within the last 90 days");}renderDay();});
+  catalog.addEventListener("click",event=>{const view=event.target.closest("[data-meal-view]"),add=event.target.closest("[data-meal-add]");if(view){const meal=MEAL_CATALOG.find(m=>m.id===view.dataset.mealView);if(meal)openDetails(meal);}else if(add){const meal=MEAL_CATALOG.find(m=>m.id===add.dataset.mealAdd);if(meal)openEntryForCatalog(meal);}});
+  detailBody.addEventListener("click",event=>{const button=event.target.closest("[data-detail-add]");if(!button)return;const meal=MEAL_CATALOG.find(m=>m.id===button.dataset.detailAdd);if(meal){detailDialog.close();openEntryForCatalog(meal);}});
+  document.getElementById("customMealBtn")?.addEventListener("click",()=>setFormValues({name:"Custom meal",type:"snack",servings:1,servingSize:"1 serving",nutrition:zeroFuel()},selectedDate()));
+  diary.addEventListener("click",event=>{
+    const edit=event.target.closest("[data-entry-edit]"), remove=event.target.closest("[data-entry-delete]");if(!edit&&!remove)return;
+    const date=selectedDate(), data=loadStorage(), day=data.days?.[date], id=(edit||remove).dataset.entryEdit||(edit||remove).dataset.entryDelete, entry=day?.meals?.find(m=>m.id===id);if(!entry)return;
+    if(edit){setFormValues(entry,date,true);return;}
+    const targetDay=ensureDay(data,date);targetDay.meals=targetDay.meals.filter(m=>m.id!==id);rebuildDayFuel(targetDay);persistDayChanges(data);
+  });
+  form.addEventListener("submit",event=>{
+    event.preventDefault();clearError();if(!form.reportValidity())return;
+    const fd=new FormData(form), date=String(fd.get("date")||""), name=String(fd.get("name")||"").trim(), servings=Number(fd.get("servings")), nutrition={protein:Number(fd.get("protein")),carbs:Number(fd.get("carbs")),fats:Number(fd.get("fats")),kcal:Number(fd.get("kcal"))};
+    if(name.length<2){showError("Enter a meal name with at least 2 characters.");return;}
+    if(!parseISODateKey(date)||date<limits.min||date>limits.today){showError("Choose a valid date within the last 90 days.");return;}
+    if(!Number.isFinite(servings)||servings<0.25||servings>10){showError("Servings must be between 0.25 and 10.");return;}
+    if(Object.values(nutrition).some(value=>!Number.isFinite(value)||value<0)){showError("Nutrition values must be zero or greater.");return;}
+    const id=String(fd.get("entryId")||""), sourceDate=String(fd.get("sourceDate")||""), data=loadStorage();
+    const entry={id:id||`meal-${Date.now()}-${Math.random().toString(36).slice(2,8)}`,mealId:String(fd.get("mealId")||""),name,type:String(fd.get("type")),servings,servingSize:String(fd.get("servingSize")||"").trim(),nutrition};
+    if(id){
+      const oldDay=data.days?.[sourceDate], oldIndex=oldDay?.meals?.findIndex(m=>m.id===id)??-1;
+      if(!oldDay||oldIndex<0){showError("That logged meal could not be found. Close this form and refresh the meal log.");return;}
+      if(!oldDay.fuelManual)oldDay.fuelManual=getManualFuel(oldDay);
+      oldDay.meals.splice(oldIndex,1);
+      const newDay=sourceDate===date?oldDay:ensureDay(data,date);
+      if(sourceDate===date&&!Array.isArray(newDay.meals))newDay.meals=[];
+      newDay.meals.push(entry);rebuildDayFuel(oldDay);if(newDay!==oldDay)rebuildDayFuel(newDay);
+    }else{
+      const day=ensureDay(data,date);day.meals.push(entry);rebuildDayFuel(day);
+    }
+    if(persistDayChanges(data)){dateInput.value=date;renderDay();entryDialog.close();form.reset();}
+  });
+  page.querySelectorAll("[data-close-dialog]").forEach(button=>button.addEventListener("click",()=>document.getElementById(button.dataset.closeDialog)?.close()));
+  [entryDialog,detailDialog].forEach(dialog=>dialog.addEventListener("click",event=>{if(event.target===dialog)dialog.close();}));
+  renderCatalog();renderDay();
+}
+
 document.addEventListener("DOMContentLoaded", () => {
   initThemeToggle();
   initHeaderShrink();
@@ -1258,5 +1637,8 @@ document.addEventListener("DOMContentLoaded", () => {
   initFormValidation();
   initProgramsPage();
   initHistoryPage();
+  initHistoryImport();
   initShowcase();
+  initMealPlans();
+  initMealsPage();
 });
